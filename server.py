@@ -1,11 +1,12 @@
 import os
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request,flash
 from flask_bootstrap import Bootstrap5
 from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin
+from flask_login import UserMixin, login_user, LoginManager, logout_user
 from sqlalchemy import String, Integer, Float, DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from forms import RegisterForm, LoginForm
 
@@ -15,6 +16,18 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_KEY', '1234')
 bootstrap = Bootstrap5(app)
+
+#login manager - LOGIN
+loginmanager=LoginManager()
+loginmanager.init_app(app)
+#current_user
+@loginmanager.user_loader
+def load_user(user_id):
+    logged_user = database.session.execute(database.select(User).where(User.id==user_id)).scalar()
+    if logged_user:
+        return logged_user
+
+
 
 
 # database
@@ -81,6 +94,8 @@ class OrderItems(database.Model):
 with app.app_context():
     database.create_all()
 
+
+
 @app.route('/', methods=['POST', 'GET'])
 def home_page():
     return render_template('homepage.html')
@@ -89,14 +104,56 @@ def home_page():
 @app.route('/register', methods=['POST', 'GET'])
 def register():
     register_form = RegisterForm()
+    if register_form.validate_on_submit():
+        name= request.form['name']
+        surname = request.form['surname']
+        email = request.form['email']
+        password = request.form['password']
+        retype_password = request.form['retype_password']
+        if password==retype_password:
+            user=database.session.execute(database.select(User).where(User.email==email)).scalar()
+            if not user:
+                hashed_password = generate_password_hash(password,method='pbkdf2:sha256', salt_length=10)
+                new_user = User(name=name,surname=surname,email=email,password=hashed_password,permission_level=1)
+                database.session.add(new_user)
+                database.session.commit()
+                flash('Register successful')
+                return redirect(url_for('login'))
+            else:
+                flash('User with that email already exists, try login.')
+                return redirect(url_for('login'))
+        else:
+            flash('Passwords dont match.')
+
     return render_template('register.html', register_form=register_form)
 
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     login_form = LoginForm()
+    if login_form.validate_on_submit():
+        email= request.form['email']
+
+        if database.session.execute(database.select(User).where(User.email==email)).scalar():
+            user= database.session.execute(database.select(User).where(User.email==email)).scalar()
+            password = request.form['password']
+            if check_password_hash(user.password,password):
+                login_user(user)
+                return redirect(url_for('home_page'))
+            else:
+                flash('Incorrect password.')
+                return redirect(url_for('login'))
+
+        else:
+            flash('There is not user with that email. Register instead.')
+            return redirect(url_for('register'))
+
     return render_template('login.html', login_form=login_form)
 
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('home_page'))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
