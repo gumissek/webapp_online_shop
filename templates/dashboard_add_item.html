@@ -1,0 +1,18 @@
+{%extends 'dashboard_base.html'%}
+{%block title%}Dashboard-Additem{%endblock%}
+{%from 'bootstrap5/form.html' import render_form%}
+{%block content%}
+
+<div class="container col-6">
+    {% with messages = get_flashed_messages()%}
+    {%if messages%}
+    {%for message in messages%}
+    <p style="color:red">{{message}}</p>
+    {%endfor%}
+    {% endif %}
+    {% endwith %}
+
+    {{render_form(form,novalidate=True)}}
+</div>
+
+{%endblock%}

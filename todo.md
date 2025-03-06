@@ -4,7 +4,7 @@
 3. rejestracja ok
 3. logowanie ok 
 4. wylogowywanie ok
-5. dashboard
+5. dashboard dla upowaznionych
 5. strona produktu opis fota cena przycisk doddaj do koszyka ile szt etc
 6.  koszyk sumowanie ceny i ilosci
 7. bramka platnosci
@@ -27,5 +27,4 @@
 # jedno zamowienie ma wiele przedmiotow 
 # jedno zamowienie ma jednego usera
 # jeden przedmiot nalezy do wielu  zamowien 
-
 

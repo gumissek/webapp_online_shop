@@ -32,7 +32,7 @@
                     <li><a href="#" class="nav-link px-2 text-white">About</a></li>
                     {%if current_user.is_authenticated%}
                         {%if current_user.permission_level>1%}
-                        <li><a href="#" class="nav-link px-2 text-white">Dashboard</a></li>
+                        <li><a href={{url_for('dashboard')}} class="nav-link px-2 text-white">Dashboard</a></li>
                         {%endif%}
                     {%endif%}
                 </ul>
@@ -43,7 +43,7 @@
 
                 <div class="text-end">
                     {%if current_user.is_authenticated%}
-                    <a href='#' class="btn btn-outline-light mx-2 disabled" >Logged as: {{current_user.name}}</a>
+                    <a href='#' class="btn btn-outline-light mx-2 disabled" >Logged as: {{current_user.name}} Perm: {{current_user.permission_level}}</a>
                     <a href={{url_for('logout')}} class="btn btn-danger mx-2">Logout</a>
                     {%else%}
                     <a href={{url_for('login')}} class="btn btn-outline-light mx-2">Login</a>

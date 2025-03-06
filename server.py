@@ -1,14 +1,16 @@
 import os
-from flask import Flask, render_template, redirect, url_for, request,flash
+from functools import wraps
+
+from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_bootstrap import Bootstrap5
 from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin, login_user, LoginManager, logout_user
+from flask_login import UserMixin, login_user, LoginManager, logout_user, current_user
 from sqlalchemy import String, Integer, Float, DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from forms import RegisterForm, LoginForm
+from forms import RegisterForm, LoginForm, AddItemForm
 
 load_dotenv()
 
@@ -17,17 +19,29 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_KEY', '1234')
 bootstrap = Bootstrap5(app)
 
-#login manager - LOGIN
-loginmanager=LoginManager()
+# login manager - LOGIN
+loginmanager = LoginManager()
 loginmanager.init_app(app)
-#current_user
+
+
+# current_user
 @loginmanager.user_loader
 def load_user(user_id):
-    logged_user = database.session.execute(database.select(User).where(User.id==user_id)).scalar()
+    logged_user = database.session.execute(database.select(User).where(User.id == user_id)).scalar()
     if logged_user:
         return logged_user
 
 
+# decorators
+def permitted_only(function):
+    @wraps(function)
+    def wrapped_function(*args, **kwargs):
+        if current_user.is_authenticated and current_user.permission_level > 1:
+            return function(*args, **kwargs)
+        else:
+            return render_template('not_permitted.html')
+
+    return wrapped_function
 
 
 # database
@@ -49,22 +63,26 @@ class User(UserMixin, database.Model):
     password: Mapped[str] = mapped_column(String(250), nullable=False)
     permission_level: Mapped[str] = mapped_column(Integer, nullable=False)
 
-    #jeden user ma wiele zamowien
+    # jeden user ma wiele zamowien
     orders = relationship('Order', back_populates='user')
+
+
 class Item(database.Model):
     __tablename__ = 'items'
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(250), nullable=False)
     description: Mapped[str] = mapped_column(String(5000), nullable=False)
     category: Mapped[str] = mapped_column(String(250), nullable=False)
+    sub_category: Mapped[str] = mapped_column(String(250), nullable=False)
     price: Mapped[float] = mapped_column(Float, nullable=False)
     img_link: Mapped[str] = mapped_column(String(250), nullable=False)
-    EAN_code: Mapped[int] = mapped_column(Integer, nullable=False)
-    manufacturer_code: Mapped[str] = mapped_column(String(250), nullable=False)
-    shop_code: Mapped[int] = mapped_column(Integer, nullable=False)
+    EAN_code: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
+    manufacturer_code: Mapped[str] = mapped_column(String(250), nullable=False, unique=True)
+    shop_code: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
 
-    #jeden item nalezy do wielu zamowien -> tabela posredniczca
-    orders = relationship('Order',secondary='orders_items',back_populates='items')
+    # jeden item nalezy do wielu zamowien -> tabela posredniczca
+    orders = relationship('Order', secondary='orders_items', back_populates='items')
+
 
 class Order(database.Model):
     __tablename__ = 'orders'
@@ -77,23 +95,24 @@ class Order(database.Model):
     address_home: Mapped[str] = mapped_column(String(250), nullable=False)
     address_zip_code: Mapped[str] = mapped_column(String(250), nullable=False)
 
-    #jedno zamowienie ma jednego usera
-    user = relationship('User',back_populates='orders')
-    user_id : Mapped[int] = mapped_column(Integer,database.ForeignKey('users.id'))
+    # jedno zamowienie ma jednego usera
+    user = relationship('User', back_populates='orders')
+    user_id: Mapped[int] = mapped_column(Integer, database.ForeignKey('users.id'))
 
-    #jedno zamowienie ma wiele itemow -> tabela posredniczca
-    items = relationship('Item',secondary='orders_items',back_populates='orders')
+    # jedno zamowienie ma wiele itemow -> tabela posredniczca
+    items = relationship('Item', secondary='orders_items', back_populates='orders')
 
-#tabela posredniczaca laczaca wiele zamowienie do wielu itemow
+
+# tabela posredniczaca laczaca wiele zamowienie do wielu itemow
 class OrderItems(database.Model):
     __tablename__ = 'orders_items'
-    id : Mapped[int] = mapped_column(Integer,primary_key=True)
-    id_order : Mapped[int]  = mapped_column(Integer,database.ForeignKey('orders.id'))
-    id_item : Mapped[int] = mapped_column(Integer,database.ForeignKey('items.id'))
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id_order: Mapped[int] = mapped_column(Integer, database.ForeignKey('orders.id'))
+    id_item: Mapped[int] = mapped_column(Integer, database.ForeignKey('items.id'))
+
 
 with app.app_context():
     database.create_all()
-
 
 
 @app.route('/', methods=['POST', 'GET'])
@@ -105,20 +124,20 @@ def home_page():
 def register():
     register_form = RegisterForm()
     if register_form.validate_on_submit():
-        name= request.form['name']
+        name = request.form['name']
         surname = request.form['surname']
         email = request.form['email']
         password = request.form['password']
         retype_password = request.form['retype_password']
-        if password==retype_password:
-            user=database.session.execute(database.select(User).where(User.email==email)).scalar()
+        if password == retype_password:
+            user = database.session.execute(database.select(User).where(User.email == email)).scalar()
             if not user:
-                hashed_password = generate_password_hash(password,method='pbkdf2:sha256', salt_length=10)
-                new_user = User(name=name,surname=surname,email=email,password=hashed_password,permission_level=1)
+                hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=10)
+                new_user = User(name=name, surname=surname, email=email, password=hashed_password, permission_level=1)
                 database.session.add(new_user)
                 database.session.commit()
-                flash('Register successful')
-                return redirect(url_for('login'))
+                login_user(new_user)
+                return redirect(url_for('home_page'))
             else:
                 flash('User with that email already exists, try login.')
                 return redirect(url_for('login'))
@@ -132,12 +151,12 @@ def register():
 def login():
     login_form = LoginForm()
     if login_form.validate_on_submit():
-        email= request.form['email']
+        email = request.form['email']
 
-        if database.session.execute(database.select(User).where(User.email==email)).scalar():
-            user= database.session.execute(database.select(User).where(User.email==email)).scalar()
+        if database.session.execute(database.select(User).where(User.email == email)).scalar():
+            user = database.session.execute(database.select(User).where(User.email == email)).scalar()
             password = request.form['password']
-            if check_password_hash(user.password,password):
+            if check_password_hash(user.password, password):
                 login_user(user)
                 return redirect(url_for('home_page'))
             else:
@@ -150,10 +169,38 @@ def login():
 
     return render_template('login.html', login_form=login_form)
 
+
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('home_page'))
+
+
+@app.route('/dashboard')
+@permitted_only
+def dashboard():
+    return render_template('dashboard_main.html')
+
+
+@app.route('/dashboard/add_item', methods=['POST', 'GET'])
+@permitted_only
+def dashboard_add_item():
+    additem_form = AddItemForm()
+    if additem_form.validate_on_submit():
+        ean_code = request.form['EAN_code']
+        if not database.session.execute(database.select(Item).where(Item.EAN_code == ean_code)).scalar():
+            new_item = Item(name=request.form['name'], description=request.form['description'],
+                            category=request.form['category'], sub_category=request.form['sub_category'],
+                            price=request.form['price'], img_link=request.form['img_link'], EAN_code=ean_code,
+                            manufacturer_code=request.form['manufacturer_code'],shop_code=request.form['shop_code'])
+            database.session.add(new_item)
+            database.session.commit()
+            flash('Item has been added to database')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Item with that EAN code exists in database')
+    return render_template('dashboard_add_item.html', form=additem_form)
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
