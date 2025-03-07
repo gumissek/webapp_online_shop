@@ -1,0 +1,56 @@
+{% extends 'dashboard_base.html'%}
+{%block title%}Dashboard all items{%endblock%}
+{%block content%}
+
+<div class="container">
+    <h1>All items page</h1>
+    {% with messages = get_flashed_messages()%}
+    {%if messages%}
+    {%for message in messages%}
+    <p style="color:red">{{message}}</p>
+    {%endfor%}
+    {% endif %}
+    {% endwith %}
+
+    {%if all_items%}
+
+    <h3>All items list:</h3>
+    <a href={{url_for('dashboard_edit_items')}} class="btn btn-warning me-2">Edit</a>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">id</th>
+            <th scope="col">name</th>
+            <th scope="col">description</th>
+            <th scope="col">category</th>
+            <th scope="col">sub_category</th>
+            <th scope="col">price</th>
+            <th scope="col">img_link</th>
+            <th scope="col">EAN_code</th>
+            <th scope="col">manufacturer_code</th>
+            <th scope="col">shop_code</th>
+            <th scope="col">actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {%for item in all_items%}
+        <tr>
+            <td scope="col">{{item.id}}</td>
+            <td scope="col">{{item.name}}</td>
+            <td scope="col">{{item.description}}</td>
+            <td scope="col">{{item.category}}</td>
+            <td scope="col">{{item.sub_category}}</td>
+            <td scope="col">{{item.price}}</td>
+            <td scope="col">{{item.img_link}}</td>
+            <td scope="col">{{item.EAN_code}}</td>
+            <td scope="col">{{item.manufacturer_code}}</td>
+            <td scope="col">{{item.shop_code}}</td>
+            <td scope="col"><a href={{url_for('dashboard_delete_item',item_id=item.id)}} class="btn btn-danger">Delete</a></td>
+        </tr>
+        {%endfor%}
+        </tbody>
+    </table>
+    {%endif%}
+    <a href={{url_for('dashboard')}} class="btn btn-primary">dashboard</a>
+</div>
+{%endblock%}

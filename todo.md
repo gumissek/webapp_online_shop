@@ -4,7 +4,7 @@
 3. rejestracja ok
 3. logowanie ok 
 4. wylogowywanie ok
-5. dashboard dla upowaznionych
+5. dashboard dla upowaznionych dodawnie/usuwanie/edycja itemu, lista itemow, ok
 5. strona produktu opis fota cena przycisk doddaj do koszyka ile szt etc
 6.  koszyk sumowanie ceny i ilosci
 7. bramka platnosci

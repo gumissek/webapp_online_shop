@@ -1,0 +1,61 @@
+{% extends 'dashboard_base.html'%}
+{%block title%}Dashboard all items{%endblock%}
+{%block content%}
+
+<div class="container">
+    <h1>Edit items page</h1>
+    {% with messages = get_flashed_messages()%}
+    {%if messages%}
+    {%for message in messages%}
+    <p style="color:red">{{message}}</p>
+    {%endfor%}
+    {% endif %}
+    {% endwith %}
+
+    {%if all_items%}
+
+    <h3>All items list:</h3>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">id</th>
+            <th scope="col">name</th>
+            <th scope="col">description</th>
+            <th scope="col">category</th>
+            <th scope="col">sub_category</th>
+            <th scope="col">price</th>
+            <th scope="col">img_link</th>
+            <th scope="col">EAN_code</th>
+            <th scope="col">manufacturer_code</th>
+            <th scope="col">shop_code</th>
+            <th scope="col">actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {%for item in all_items%}
+        <form action={{url_for('edit_item',item_id=item.id)}} method="post">
+            <tr>
+                <td scope="col">{{item.id}}</td>
+
+                <td scope="col"><input name="name{{item.id}}" value={{item.name}}></td>
+                <td scope="col"><input name="description{{item.id}}" value={{item.description}}></td>
+                <td scope="col"><input name="category{{item.id}}" value={{item.category}}></td>
+                <td scope="col"><input name="sub_category{{item.id}}" value={{item.sub_category}}></td>
+                <td scope="col"><input name="price{{item.id}}" value={{item.price}}></td>
+                <td scope="col"><input name="img_link{{item.id}}" value={{item.img_link}}></td>
+                <td scope="col"><input name="EAN_code{{item.id}}" value={{item.EAN_code}}></td>
+                <td scope="col"><input name="manufacturer_code{{item.id}}" value={{item.manufacturer_code}}></td>
+                <td scope="col"><input name="shop_code{{item.id}}" value={{item.shop_code}}></td>
+                <td scope="col">
+                    <button type="submit" class="btn btn-primary">CONFIRM</button>
+                </td>
+            </tr>
+        </form>
+
+        {%endfor%}
+        </tbody>
+    </table>
+    {%endif%}
+    <a href={{url_for('dashboard')}} class="btn btn-primary">dashboard</a>
+</div>
+{%endblock%}

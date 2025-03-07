@@ -94,6 +94,7 @@ class Order(database.Model):
     address_street: Mapped[str] = mapped_column(String(250), nullable=False)
     address_home: Mapped[str] = mapped_column(String(250), nullable=False)
     address_zip_code: Mapped[str] = mapped_column(String(250), nullable=False)
+    status: Mapped[str] = mapped_column(String(250), nullable=False)
 
     # jedno zamowienie ma jednego usera
     user = relationship('User', back_populates='orders')
@@ -192,7 +193,7 @@ def dashboard_add_item():
             new_item = Item(name=request.form['name'], description=request.form['description'],
                             category=request.form['category'], sub_category=request.form['sub_category'],
                             price=request.form['price'], img_link=request.form['img_link'], EAN_code=ean_code,
-                            manufacturer_code=request.form['manufacturer_code'],shop_code=request.form['shop_code'])
+                            manufacturer_code=request.form['manufacturer_code'], shop_code=request.form['shop_code'])
             database.session.add(new_item)
             database.session.commit()
             flash('Item has been added to database')
@@ -200,6 +201,43 @@ def dashboard_add_item():
         else:
             flash('Item with that EAN code exists in database')
     return render_template('dashboard_add_item.html', form=additem_form)
+
+
+@app.route('/dashboard/all_items')
+@permitted_only
+def dashboard_all_items():
+    all_items = database.session.execute(database.select(Item)).scalars().all()
+    return render_template('dashboard_all_items.html', all_items=all_items)
+
+
+@app.route('/dashboard/del_item/<int:item_id>')
+@permitted_only
+def dashboard_delete_item(item_id):
+    requested_item = database.session.execute(database.select(Item).where(Item.id == item_id)).scalar()
+    database.session.delete(requested_item)
+    database.session.commit()
+    flash(f'Item with id: {item_id} has been removed from database')
+    return redirect(url_for('dashboard_all_items'))
+
+@app.route('/dashboard/edit_items',methods=['POST','GET'])
+def dashboard_edit_items():
+    all_items = database.session.execute(database.select(Item)).scalars().all()
+    return render_template('dashboard_edit_items.html',all_items=all_items)
+
+@app.route('/dashboard/edit_item/<int:item_id>',methods=['POST'])
+def edit_item(item_id):
+    requested_item = database.session.execute(database.select(Item).where(Item.id == item_id)).scalar()
+    requested_item.name = request.form[f'name{item_id}']
+    requested_item.description=request.form[f'description{item_id}']
+    requested_item.category=request.form[f'category{item_id}']
+    requested_item.sub_category=request.form[f'sub_category{item_id}']
+    requested_item.price = request.form[f'price{item_id}']
+    requested_item.img_link = request.form[f'img_link{item_id}']
+    requested_item.EAN_code = request.form[f'EAN_code{item_id}']
+    requested_item.manufacturer_code = request.form[f'manufacturer_code{item_id}']
+    requested_item.shop_code=request.form[f'shop_code{item_id}']
+    database.session.commit()
+    return redirect(url_for('dashboard_edit_items'))
 
 
 if __name__ == '__main__':
