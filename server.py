@@ -5,8 +5,8 @@ from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_bootstrap import Bootstrap5
 from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin, login_user, LoginManager, logout_user, current_user
-from sqlalchemy import String, Integer, Float, DateTime
+from flask_login import UserMixin, login_user, LoginManager, logout_user, current_user, login_required
+from sqlalchemy import String, Integer, Float
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -115,10 +115,44 @@ class OrderItems(database.Model):
 with app.app_context():
     database.create_all()
 
-
+cart=[]
+#pages
 @app.route('/', methods=['POST', 'GET'])
 def home_page():
     return render_template('homepage.html')
+
+@app.route('/shop_page')
+def items_page():
+    all_items = database.session.execute(database.select(Item)).scalars().all()
+    return render_template('shop_page.html',all_items=all_items)
+
+@app.route('/shop_page/show_item',methods=['POST','GET'])
+def show_item():
+    item_id=request.args.get('item_id')
+    selected_item = database.session.execute(database.select(Item).where(Item.id==item_id)).scalar()
+    if request.method=='POST':
+        for i in range(int(request.form['amount'])):
+            cart.append(selected_item)
+
+        return render_template('shop_item_page.html',item=selected_item)
+    return  render_template('shop_item_page.html',item=selected_item)
+
+@app.route('/cart')
+def show_cart():
+    return render_template('cart_page.html',cart=cart)
+
+@app.route('/cart/delete')
+def delete_from_cart():
+    print(len(cart))
+    cart.remove(cart[int(request.args.get('index'))])
+    print(len(cart))
+    return redirect(url_for('show_cart'))
+# def add_to_cart():
+#     selected_item = database.session.execute(database.select(Item).where(Item.id==item_id)).scalar()
+#
+#     for i in request.form['amount']:
+#         cart.append(selected_item)
+#     return refresh
 
 
 @app.route('/register', methods=['POST', 'GET'])
@@ -170,12 +204,15 @@ def login():
 
     return render_template('login.html', login_form=login_form)
 
-
+@login_required
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('home_page'))
 
+
+
+#dashboard
 
 @app.route('/dashboard')
 @permitted_only
@@ -220,11 +257,13 @@ def dashboard_delete_item(item_id):
     return redirect(url_for('dashboard_all_items'))
 
 @app.route('/dashboard/edit_items',methods=['POST','GET'])
+@permitted_only
 def dashboard_edit_items():
     all_items = database.session.execute(database.select(Item)).scalars().all()
     return render_template('dashboard_edit_items.html',all_items=all_items)
 
 @app.route('/dashboard/edit_item/<int:item_id>',methods=['POST'])
+@permitted_only
 def edit_item(item_id):
     requested_item = database.session.execute(database.select(Item).where(Item.id == item_id)).scalar()
     requested_item.name = request.form[f'name{item_id}']

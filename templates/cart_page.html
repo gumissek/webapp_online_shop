@@ -1,0 +1,16 @@
+{%extends 'base.html'%}
+{%block title%}Cart{%endblock%}
+{%block content%}
+<div class="container">
+    <h1>Cart:</h1>
+    {%if cart%}
+    <ol>
+
+
+        {%for item in cart%}
+        <li> Name :{{item.name}} Cena:{{item.price}} <a href={{url_for('show_item',item_id=item.id)}}>Link do przedmiotu</a>  <a href={{url_for('delete_from_cart',index=cart.index(item))}}>X</a></li>
+        {%endfor%}
+    </ol>
+    {%endif%}
+</div>
+{%endblock%}

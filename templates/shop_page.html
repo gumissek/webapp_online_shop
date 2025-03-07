@@ -1,0 +1,26 @@
+{%extends 'base.html'%}
+{%block title%}Browse items{%endblock%}
+{%block content%}
+<div class="container">
+    <h1>Browse items :</h1>
+    {%if all_items%}
+    <div class="row">
+        {%for item in all_items%}
+        <div class="col-3">
+            <div class="card" style="width: 18rem;">
+                <img src="..." class="card-img-top" alt="...">
+                <div class="card-body">
+                    <h5 class="card-title">{{item.name}}</h5>
+                    <p class="card-text">Description: {{item.description}}</p>
+                    <p class="card-text">Category: {{item.category}}</p>
+                    <p class="card-text">Price: {{item.price}}</p>
+                    <a href={{url_for('show_item',item_id=item.id)}} class="btn btn-primary">Show item</a> <a href="#" class="btn btn-primary">Add to
+                    cart</a>
+                </div>
+            </div>
+        </div>
+        {%endfor%}
+    </div>
+    {%endif%}
+</div>
+{%endblock%}
