@@ -155,12 +155,52 @@ def add_to_cart():
 def delete_from_cart():
     cart.remove(cart[int(request.args.get('index'))])
     return redirect(url_for('show_cart'))
-# def add_to_cart():
-#     selected_item = database.session.execute(database.select(Item).where(Item.id==item_id)).scalar()
-#
-#     for i in request.form['amount']:
-#         cart.append(selected_item)
-#     return refresh
+
+
+@app.route('/place_order', methods=['POST', 'GET'])
+def place_order():
+    # jesli zalogowany
+    if current_user.is_authenticated:
+        order_form = PlaceOrderForm(name=current_user.name, surname=current_user.surname, email=current_user.email)
+        if order_form.validate_on_submit():
+            new_order = Order(price=calculate_sum_cart(), date_order=datetime.datetime.now().strftime('%Y-%m-%d'),
+                              time_order=datetime.datetime.now().strftime('%H:%M:%S'),
+                              address_country=request.form['country'].title(),
+                              address_city=request.form['city'].title(),
+                              address_street=request.form['street'].title(), address_home=request.form['home'],
+                              address_zip_code=request.form['zip_code'], status=1,
+                              delivery=request.form['delivery'], payment_method=request.form['payment_method'],
+                              user_id=current_user.id,
+                              name=request.form['name'], surname=request.form['surname'], email=request.form['email'],
+                              items=CART)
+            database.session.add(new_order)
+            database.session.commit()
+            clear_cart()
+            flash(f'The order for logged in {request.form['email']} has been placed')
+            return redirect(url_for('home_page'))
+        return render_template('place_order.html', cart=CART, sum=calculate_sum_cart(), form=order_form)
+
+    # jesli wylogowany bez user_id
+    else:
+
+        order_form = PlaceOrderForm()
+        if order_form.validate_on_submit():
+            new_order = Order(price=calculate_sum_cart(), date_order=datetime.datetime.now().strftime('%Y-%m-%d'),
+                              time_order=datetime.datetime.now().strftime('%H:%M:%S'),
+                              address_country=request.form['country'].title(),
+                              address_city=request.form['city'].title(),
+                              address_street=request.form['street'].title(), address_home=request.form['home'],
+                              address_zip_code=request.form['zip_code'], status=1,
+                              delivery=request.form['delivery'], payment_method=request.form['payment_method'],
+
+                              name=request.form['name'], surname=request.form['surname'], email=request.form['email'],
+                              items=CART)
+            database.session.add(new_order)
+            database.session.commit()
+            clear_cart()
+            flash(f'The order for logged out{request.form['email']} has been placed')
+            return redirect(url_for('home_page'))
+        return render_template('place_order.html', cart=CART, sum=calculate_sum_cart(), form=order_form)
 
 
 @app.route('/register', methods=['POST', 'GET'])
