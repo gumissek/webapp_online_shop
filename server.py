@@ -115,9 +115,31 @@ class OrderItems(database.Model):
 with app.app_context():
     database.create_all()
 
-cart=[]
-#pages
-@app.route('/', methods=['POST', 'GET'])
+# ROUTES
+
+CART = []
+SUM_CART=0
+
+def calculate_sum_cart():
+    global SUM_CART
+    SUM_CART =0
+    for item in CART:
+        SUM_CART += float(item.price)
+    return SUM_CART
+
+def clear_cart():
+    for item in CART:
+        CART.remove(item)
+
+
+# pages
+@app.route('/')
+def start():
+    session['cart'] = []
+    return redirect(url_for('home_page'))
+
+
+@app.route('/home', methods=['POST', 'GET'])
 def home_page():
     return render_template('homepage.html')
 
