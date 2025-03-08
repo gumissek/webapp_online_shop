@@ -1,0 +1,86 @@
+{% extends 'dashboard_base.html'%}
+{%block title%}Dashboard edit orders{%endblock%}
+{%block content%}
+<div class="container">
+    <h1>Edit orders page</h1>
+    {% with messages = get_flashed_messages()%}
+    {%if messages%}
+    {%for message in messages%}
+    <p style="color:red">{{message}}</p>
+    {%endfor%}
+    {% endif %}
+    {% endwith %}
+    {%if all_orders%}
+
+    <h3>Edit orders list:</h3>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">id</th>
+            <th scope="col">name</th>
+            <th scope="col">surname</th>
+            <th scope="col">email</th>
+            <th scope="col">user_id</th>
+            <th scope="col">date_order</th>
+            <th scope="col">time_order</th>
+            <th scope="col">address_country</th>
+            <th scope="col">address_city</th>
+            <th scope="col">address_street</th>
+            <th scope="col">address_home</th>
+            <th scope="col">address_zip_code</th>
+            <th scope="col">price</th>
+            <th scope="col">items</th>
+            <th scope="col">delivery</th>
+            <th scope="col">payment_method</th>
+            <th scope="col">status</th>
+            <th scope="col">#</th>
+
+        </tr>
+        </thead>
+        <tbody>
+        {%for order in all_orders%}
+        <form action={{url_for('dashboard_edit_order',order_id=order.id)}} method="post">
+
+
+            <tr>
+                <td scope="col">{{order.id}}</td>
+                <td scope="col">{{order.name}}<input name="name{{order.id}}" value="{{order.name}}"></td>
+                <td scope="col">{{order.surname}}<input name="surname{{order.id}}" value="{{order.surname}}"></td>
+                <td scope="col">{{order.email}}<input name="email{{order.id}}" value="{{order.email}}"></td>
+                <td scope="col">{{order.user_id}}</td>
+                <td scope="col">{{order.date_order}}</td>
+                <td scope="col">{{order.time_order}}</td>
+                <td scope="col">{{order.address_country}}<input name="address_country{{order.id}}"
+                                                                value="{{order.address_country}}"></td>
+                <td scope="col">{{order.address_city}}<input name="address_city{{order.id}}"
+                                                             value="{{order.address_city}}"></td>
+                <td scope="col">{{order.address_street}}<input name="address_street{{order.id}}"
+                                                               value="{{order.address_street}}"></td>
+                <td scope="col">{{order.address_home}}<input name="address_home{{order.id}}"
+                                                             value="{{order.address_home}}"></td>
+                <td scope="col">{{order.address_zip_code}}<input name="address_zip_code{{order.id}}"
+                                                                 value="{{order.address_zip_code}}"></td>
+                <td scope="col">{{order.price}}<input name="price{{order.id}}" value="{{order.price}}"></td>
+                <td scope="col">{%for item in order.items%}<p>Name:{{item.name}} Id:{{item.id}}
+                    EAN:{{item.EAN_code}}</p>
+                    {%endfor%}
+                </td>
+                <td scope="col">{{order.delivery}}</td>
+                <td scope="col">{{order.payment_method}}</td>
+                <td scope="col">{{order.status}}<input name="status{{order.id}}" value="{{order.status}}"></td>
+
+
+                <td scope="col">
+                    <button type="submit" class="btn btn-success">Apply changes</button>
+
+                </td>
+            </tr>
+        </form>
+        {%endfor%}
+        </tbody>
+    </table>
+    {%endif%}
+    <a href={{url_for('dashboard')}} class="btn btn-primary">dashboard</a>
+    <a href={{url_for('dashboard_all_orders')}} class="btn btn-primary">all orders</a>
+</div>
+{%endblock%}

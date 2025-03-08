@@ -15,7 +15,7 @@
     {%if all_items%}
 
     <h3>All items list:</h3>
-    <table class="table">
+    <table class="table table-striped">
         <thead>
         <tr>
             <th scope="col">id</th>
@@ -33,21 +33,21 @@
         </thead>
         <tbody>
         {%for item in all_items%}
-        <form action={{url_for('edit_item',item_id=item.id)}} method="post">
+        <form action={{url_for('dashboard_edit_item',item_id=item.id)}} method="post">
             <tr>
                 <td scope="col">{{item.id}}</td>
 
-                <td scope="col"><input name="name{{item.id}}" value="{{item.name}}"></td>
-                <td scope="col"><input name="description{{item.id}}" value="{{item.description}}"></td>
-                <td scope="col"><input name="category{{item.id}}" value="{{item.category}"></td>
-                <td scope="col"><input name="sub_category{{item.id}}" value="{{item.sub_category}}"></td>
-                <td scope="col"><input name="price{{item.id}}" value={{item.price}}></td>
-                <td scope="col"><input name="img_link{{item.id}}" value={{item.img_link}}></td>
-                <td scope="col"><input name="EAN_code{{item.id}}" value={{item.EAN_code}}></td>
-                <td scope="col"><input name="manufacturer_code{{item.id}}" value={{item.manufacturer_code}}></td>
-                <td scope="col"><input name="shop_code{{item.id}}" value={{item.shop_code}}></td>
+                <td scope="col">{{item.name}}<input name="name{{item.id}}" value="{{item.name}}"></td>
+                <td scope="col">{{item.description}}<input name="description{{item.id}}" value="{{item.description}}"></td>
+                <td scope="col">{{item.category}}<input name="category{{item.id}}" value="{{item.category}}"></td>
+                <td scope="col">{{item.sub_category}}<input name="sub_category{{item.id}}" value="{{item.sub_category}}"></td>
+                <td scope="col">{{item.price}}<input name="price{{item.id}}" value={{item.price}}></td>
+                <td scope="col">{{item.img_link}}<input name="img_link{{item.id}}" value={{item.img_link}}></td>
+                <td scope="col">{{item.EAN_code}}<input name="EAN_code{{item.id}}" value={{item.EAN_code}}></td>
+                <td scope="col">{{item.manufacturer_code}}<input name="manufacturer_code{{item.id}}" value={{item.manufacturer_code}}></td>
+                <td scope="col">{{item.shop_code}}<input name="shop_code{{item.id}}" value={{item.shop_code}}></td>
                 <td scope="col">
-                    <button type="submit" class="btn btn-primary">CONFIRM</button>
+                    <button type="submit" class="btn btn-success">Apply changes</button>
                 </td>
             </tr>
         </form>
@@ -56,6 +56,8 @@
         </tbody>
     </table>
     {%endif%}
+    <br>
+    <a href={{url_for('dashboard_all_items')}} class="btn btn-primary">all items</a>
     <a href={{url_for('dashboard')}} class="btn btn-primary">dashboard</a>
 </div>
 {%endblock%}

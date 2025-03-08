@@ -14,7 +14,7 @@
     {%if all_orders%}
 
     <h3>All orders list:</h3>
-    <a href="#" class="btn btn-warning me-2 disabled">Edit</a>
+    <a href={{url_for('dashboard_edit_orders')}} class="btn btn-warning me-2 ">Edit orders</a>
     <table class="table table-striped">
         <thead>
         <tr>
@@ -55,14 +55,20 @@
             <td scope="col">{{order.address_home}}</td>
             <td scope="col">{{order.address_zip_code}}</td>
             <td scope="col">{{order.price}}</td>
-            <td scope="col">{%for item in order.items%}<p>Name:{{item.name}} Id:{{item.id}} EAN:{{item.EAN_code}}</p>{%endfor%}</td>
+            <td scope="col">{%for item in order.items%}<p>Name:{{item.name}} Id:{{item.id}} EAN:{{item.EAN_code}}</p>
+                {%endfor%}
+            </td>
             <td scope="col">{{order.delivery}}</td>
             <td scope="col">{{order.payment_method}}</td>
             <td scope="col">{{order.status}}</td>
 
 
             <td scope="col"><a href={{url_for('order_update_status',order_id=order.id)}}
-                               class="btn btn-warning">Update status</a></td>
+                               class="btn btn-warning me-1">Update status</a>
+                            <a
+                        href="#"
+                        class="btn btn-danger disabled me-1">Delete order</a>
+            </td>
         </tr>
         {%endfor%}
         </tbody>

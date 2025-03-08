@@ -16,7 +16,7 @@
 
     <h3>All items list:</h3>
     <a href={{url_for('dashboard_edit_items')}} class="btn btn-warning me-2">Edit</a>
-    <table class="table">
+    <table class="table table-striped">
         <thead>
         <tr>
             <th scope="col">id</th>
@@ -52,5 +52,6 @@
     </table>
     {%endif%}
     <a href={{url_for('dashboard')}} class="btn btn-primary">dashboard</a>
+    <a href={{url_for('dashboard_add_item')}} class="btn btn-primary">add item</a>
 </div>
 {%endblock%}

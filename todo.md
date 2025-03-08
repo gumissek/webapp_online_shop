@@ -4,14 +4,14 @@
 3. rejestracja ok
 3. logowanie ok 
 4. wylogowywanie ok
-5. dashboard dla upowaznionych dodawnie/usuwanie/edycja itemu, lista itemow, ok , wyswietlanie zamowien 
-5. strona produktu opis fota cena przycisk doddaj do koszyka ile szt etc
+5. dashboard dla upowaznionych dodawnie/usuwanie/edycja itemu, lista itemow, ok , wyswietlanie zamowien OK
+5. strona produktu opis fota cena przycisk doddaj do koszyka ile szt etc OK
 6. koszyk jako zmienna w sesji
-6.  koszyk sumowanie ceny i ilosci
+6.  koszyk sumowanie ceny i ilosci OK
 7. bramka platnosci
-8. dane adresowe
+8. dane adresowe OK
 9. panel admina do dodawania produktow widoczny tylko dla uzytkownikow z poziomem dostepu >1
-10. wyswietlanie zamowien , dodawanie/usuwanie przedmiotow
+10. wyswietlanie zamowien , dodawanie/usuwanie przedmiotow OK
 
 
 

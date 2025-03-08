@@ -1,7 +1,9 @@
+import datetime
 import os
+from collections import Counter
 from functools import wraps
-
-from flask import Flask, render_template, redirect, url_for, request, flash
+import inspect
+from flask import Flask, render_template, redirect, url_for, request, flash, session
 from flask_bootstrap import Bootstrap5
 from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
@@ -10,7 +12,7 @@ from sqlalchemy import String, Integer, Float
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from forms import RegisterForm, LoginForm, AddItemForm
+from forms import RegisterForm, LoginForm, AddItemForm, PlaceOrderForm
 
 load_dotenv()
 
@@ -89,16 +91,23 @@ class Order(database.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     price: Mapped[float] = mapped_column(Float, nullable=False)
     date_order: Mapped[str] = mapped_column(String(250), nullable=False)
+    time_order: Mapped[str] = mapped_column(String(250), nullable=False)
     address_country: Mapped[str] = mapped_column(String(250), nullable=False)
     address_city: Mapped[str] = mapped_column(String(250), nullable=False)
     address_street: Mapped[str] = mapped_column(String(250), nullable=False)
     address_home: Mapped[str] = mapped_column(String(250), nullable=False)
     address_zip_code: Mapped[str] = mapped_column(String(250), nullable=False)
-    status: Mapped[str] = mapped_column(String(250), nullable=False)
+    status: Mapped[int] = mapped_column(Integer, nullable=False)
+    delivery: Mapped[str] = mapped_column(String(250), nullable=False)
+    payment_method: Mapped[str] = mapped_column(String(250), nullable=False)
 
     # jedno zamowienie ma jednego usera
     user = relationship('User', back_populates='orders')
-    user_id: Mapped[int] = mapped_column(Integer, database.ForeignKey('users.id'))
+    user_id: Mapped[int] = mapped_column(Integer, database.ForeignKey('users.id'), nullable=True)
+
+    name: Mapped[str] = mapped_column(String(250))
+    surname: Mapped[str] = mapped_column(String(250))
+    email: Mapped[str] = mapped_column(String(250))
 
     # jedno zamowienie ma wiele itemow -> tabela posredniczca
     items = relationship('Item', secondary='orders_items', back_populates='orders')
@@ -118,14 +127,16 @@ with app.app_context():
 # ROUTES
 
 CART = []
-SUM_CART=0
+SUM_CART = 0
+
 
 def calculate_sum_cart():
     global SUM_CART
-    SUM_CART =0
+    SUM_CART = 0
     for item in CART:
         SUM_CART += float(item.price)
     return SUM_CART
+
 
 def clear_cart():
     for item in CART:
@@ -143,39 +154,53 @@ def start():
 def home_page():
     return render_template('homepage.html')
 
+
 @app.route('/shop_page')
 def items_page():
     all_items = database.session.execute(database.select(Item)).scalars().all()
-    return render_template('shop_page.html',all_items=all_items)
+    return render_template('shop_page.html', all_items=all_items)
 
-@app.route('/shop_page/show_item',methods=['POST','GET'])
+
+@app.route('/shop_page/show_item', methods=['POST', 'GET'])
 def show_item():
-    item_id=request.args.get('item_id')
-    selected_item = database.session.execute(database.select(Item).where(Item.id==item_id)).scalar()
-    if request.method=='POST':
+    item_id = request.args.get('item_id')
+    selected_item = database.session.execute(database.select(Item).where(Item.id == item_id)).scalar()
+    if request.method == 'POST':
         for i in range(int(request.form['amount'])):
-            cart.append(selected_item)
+            CART.append(selected_item)
 
-        return render_template('shop_item_page.html',item=selected_item)
-    return  render_template('shop_item_page.html',item=selected_item)
+        return render_template('shop_item_page.html', item=selected_item)
+    return render_template('shop_item_page.html', item=selected_item)
+
 
 @app.route('/cart')
 def show_cart():
-    return render_template('cart_page.html',cart=cart)
+    # items_pieces = Counter(cart)
+    # for item in items_pieces.items():
+    #     print(f'Nazwa przedmiotu: {item[0].name} Ilosc: {item[1]}')
+    items_pieces = {item: CART.count(item) for item in CART}
+    print(items_pieces)
+    for item in CART:
+        print(item.name)
+    print(f'Cart: {CART}')
+    print(f'session cart: {session['cart']}')
+    # TODO DODAC ZMIENNA SESYJNA JAKO CART I OGARNC TO
+    return render_template('cart_page.html', cart=CART, sum=calculate_sum_cart())
+
 
 @app.route('/cart/add')
 def add_to_cart():
-    selected_item = database.session.execute(database.select(Item).where(Item.id==request.args.get('item_id'))).scalar()
-    cart.append(selected_item)
+    item_id = request.args.get('item_id')
+    selected_item = database.session.execute(database.select(Item).where(Item.id == item_id)).scalar()
+    CART.append(selected_item)
+    # todo wrocic tu TODO DODAC ZMIENNA SESYJNA JAKO CART I OGARNC TO
+    session['cart'].append(selected_item)
     return redirect(url_for('items_page'))
-#todo zrobic zliczanie rzeczy w koszyku np ile jest przedmiotu:but  w koszuky i sumowanie ceny
-# but
-# but
-# czyli ma dac but - 2 sztuki
+
 
 @app.route('/cart/delete')
 def delete_from_cart():
-    cart.remove(cart[int(request.args.get('index'))])
+    CART.remove(CART[int(request.args.get('index'))])
     return redirect(url_for('show_cart'))
 
 
@@ -274,15 +299,16 @@ def login():
 
     return render_template('login.html', login_form=login_form)
 
+
 @login_required
 @app.route('/logout')
 def logout():
+    clear_cart()
     logout_user()
     return redirect(url_for('home_page'))
 
 
-
-#dashboard
+# DASHBOARD
 
 @app.route('/dashboard')
 @permitted_only
@@ -290,7 +316,55 @@ def dashboard():
     return render_template('dashboard_main.html')
 
 
-@app.route('/dashboard/add_item', methods=['POST', 'GET'])
+# DASHBOARD ORDERS
+
+
+@app.route('/dashboard/all_orders')
+@permitted_only
+def dashboard_all_orders():
+    all_orders = database.session.execute(database.select(Order).order_by(Order.status)).scalars().all()
+    return render_template('dashboard_all_orders.html', all_orders=all_orders)
+
+
+@app.route('/dashboard/update_status')
+@permitted_only
+def order_update_status():
+    requested_order = database.session.execute(
+        database.select(Order).where(Order.id == request.args.get('order_id'))).scalar()
+    requested_order.status += 1
+    database.session.commit()
+    return redirect(url_for('dashboard_all_orders'))
+
+
+@app.route('/dashboard/orders/edit_orders')
+@permitted_only
+def dashboard_edit_orders():
+    all_orders = database.session.execute(database.select(Order).order_by(Order.status)).scalars().all()
+    return render_template('dashboard_edit_orders.html', all_orders=all_orders)
+
+
+@app.route('/dashboard/orders/edit_order/<int:order_id>', methods=['POST'])
+@permitted_only
+def dashboard_edit_order(order_id):
+    requested_order = database.session.execute(
+        database.select(Order).where(Order.id == order_id)).scalar()
+
+    requested_order.name = request.form[f'name{order_id}']
+    requested_order.surname = request.form[f'surname{order_id}']
+    requested_order.email = request.form[f'email{order_id}']
+    requested_order.address_country = request.form[f'address_country{order_id}']
+    requested_order.address_city = request.form[f'address_city{order_id}']
+    requested_order.address_street = request.form[f'address_street{order_id}']
+    requested_order.address_home = request.form[f'address_home{order_id}']
+    requested_order.address_zip_code = request.form[f'address_zip_code{order_id}']
+    requested_order.price = request.form[f'price{order_id}']
+    requested_order.status = request.form[f'status{order_id}']
+    database.session.commit()
+    return redirect(url_for('dashboard_edit_orders'))
+
+
+# DASHBOARD ITEMS
+@app.route('/dashboard/items/add_item', methods=['POST', 'GET'])
 @permitted_only
 def dashboard_add_item():
     additem_form = AddItemForm()
@@ -303,34 +377,21 @@ def dashboard_add_item():
                             manufacturer_code=request.form['manufacturer_code'], shop_code=request.form['shop_code'])
             database.session.add(new_item)
             database.session.commit()
-            flash('Item has been added to database')
-            return redirect(url_for('dashboard'))
+            flash(f'Item {request.form['name']} has been added to database')
+            return redirect(url_for('dashboard_add_item'))
         else:
             flash('Item with that EAN code exists in database')
     return render_template('dashboard_add_item.html', form=additem_form)
 
-@app.route('/dashboard/all_orders')
-@permitted_only
-def dashboard_all_orders():
-    all_orders= database.session.execute(database.select(Order)).scalars().all()
-    return render_template('dashboard_all_orders.html',all_orders=all_orders)
 
-@app.route('/dashboard/update_status')
-@permitted_only
-def order_update_status():
-    requested_order=database.session.execute(database.select(Order).where(Order.id==request.args.get('order_id'))).scalar()
-    requested_order.status+=1
-    database.session.commit()
-    return redirect(url_for('dashboard_all_orders'))
-
-@app.route('/dashboard/all_items')
+@app.route('/dashboard/items/all_items')
 @permitted_only
 def dashboard_all_items():
     all_items = database.session.execute(database.select(Item)).scalars().all()
     return render_template('dashboard_all_items.html', all_items=all_items)
 
 
-@app.route('/dashboard/del_item/<int:item_id>')
+@app.route('/dashboard/items/del_item/<int:item_id>')
 @permitted_only
 def dashboard_delete_item(item_id):
     requested_item = database.session.execute(database.select(Item).where(Item.id == item_id)).scalar()
@@ -339,25 +400,27 @@ def dashboard_delete_item(item_id):
     flash(f'Item with id: {item_id} has been removed from database')
     return redirect(url_for('dashboard_all_items'))
 
-@app.route('/dashboard/edit_items',methods=['POST','GET'])
+
+@app.route('/dashboard/items/edit_items', methods=['POST', 'GET'])
 @permitted_only
 def dashboard_edit_items():
     all_items = database.session.execute(database.select(Item)).scalars().all()
-    return render_template('dashboard_edit_items.html',all_items=all_items)
+    return render_template('dashboard_edit_items.html', all_items=all_items)
 
-@app.route('/dashboard/edit_item/<int:item_id>',methods=['POST'])
+
+@app.route('/dashboard/items/edit_item/<int:item_id>', methods=['POST'])
 @permitted_only
-def edit_item(item_id):
+def dashboard_edit_item(item_id):
     requested_item = database.session.execute(database.select(Item).where(Item.id == item_id)).scalar()
     requested_item.name = request.form[f'name{item_id}']
-    requested_item.description=request.form[f'description{item_id}']
-    requested_item.category=request.form[f'category{item_id}']
-    requested_item.sub_category=request.form[f'sub_category{item_id}']
+    requested_item.description = request.form[f'description{item_id}']
+    requested_item.category = request.form[f'category{item_id}']
+    requested_item.sub_category = request.form[f'sub_category{item_id}']
     requested_item.price = request.form[f'price{item_id}']
     requested_item.img_link = request.form[f'img_link{item_id}']
     requested_item.EAN_code = request.form[f'EAN_code{item_id}']
     requested_item.manufacturer_code = request.form[f'manufacturer_code{item_id}']
-    requested_item.shop_code=request.form[f'shop_code{item_id}']
+    requested_item.shop_code = request.form[f'shop_code{item_id}']
     database.session.commit()
     return redirect(url_for('dashboard_edit_items'))
 

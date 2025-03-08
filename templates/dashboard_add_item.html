@@ -11,10 +11,14 @@
     {%endfor%}
     {% endif %}
     {% endwith %}
-    <a href={{url_for('dashboard')}} class="btn btn-primary">dashboard</a>
 
-    <hr>
+
+
     {{render_form(form,novalidate=True)}}
+    <br>
+    <hr>
+    <a href={{url_for('dashboard_all_items')}} class="btn btn-primary">all items</a>
+    <a href={{url_for('dashboard')}} class="btn btn-primary">dashboard</a>
 </div>
 
 {%endblock%}
