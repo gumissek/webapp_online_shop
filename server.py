@@ -247,6 +247,19 @@ def dashboard_add_item():
             flash('Item with that EAN code exists in database')
     return render_template('dashboard_add_item.html', form=additem_form)
 
+@app.route('/dashboard/all_orders')
+@permitted_only
+def dashboard_all_orders():
+    all_orders= database.session.execute(database.select(Order)).scalars().all()
+    return render_template('dashboard_all_orders.html',all_orders=all_orders)
+
+@app.route('/dashboard/update_status')
+@permitted_only
+def order_update_status():
+    requested_order=database.session.execute(database.select(Order).where(Order.id==request.args.get('order_id'))).scalar()
+    requested_order.status+=1
+    database.session.commit()
+    return redirect(url_for('dashboard_all_orders'))
 
 @app.route('/dashboard/all_items')
 @permitted_only
