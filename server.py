@@ -141,11 +141,19 @@ def show_item():
 def show_cart():
     return render_template('cart_page.html',cart=cart)
 
+@app.route('/cart/add')
+def add_to_cart():
+    selected_item = database.session.execute(database.select(Item).where(Item.id==request.args.get('item_id'))).scalar()
+    cart.append(selected_item)
+    return redirect(url_for('items_page'))
+#todo zrobic zliczanie rzeczy w koszyku np ile jest przedmiotu:but  w koszuky i sumowanie ceny
+# but
+# but
+# czyli ma dac but - 2 sztuki
+
 @app.route('/cart/delete')
 def delete_from_cart():
-    print(len(cart))
     cart.remove(cart[int(request.args.get('index'))])
-    print(len(cart))
     return redirect(url_for('show_cart'))
 # def add_to_cart():
 #     selected_item = database.session.execute(database.select(Item).where(Item.id==item_id)).scalar()
