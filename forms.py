@@ -29,3 +29,16 @@ class AddItemForm(FlaskForm):
     manufacturer_code = StringField(label='Manufacturer code',validators=[DataRequired()])
     shop_code = IntegerField(label='Shop_code',validators=[DataRequired()])
     submit = SubmitField(label='Add item')
+
+class PlaceOrderForm(FlaskForm):
+    name = StringField(label='Name',validators=[DataRequired()])
+    surname = StringField(label='Surname',validators=[DataRequired()])
+    email = EmailField(label='Email',validators=[DataRequired(),Email()])
+    country = StringField(label='Country',validators=[DataRequired()])
+    city = StringField(label='City',validators=[DataRequired()])
+    street = StringField(label='Street name',validators=[DataRequired()])
+    home = StringField(label='Home number',validators=[DataRequired()])
+    zip_code= StringField(label='Zip code',validators=[DataRequired()])
+    delivery = SelectField(label='Delivery',choices=[('DPD','DPD'),('INPOST','INPOST'),('UPS','UPS')])
+    payment_method = SelectField(label='Payment method',choices=[('CARD','CARD'),('POBRANIE','POBRANIE')])
+    submit = SubmitField(label='Place order')
