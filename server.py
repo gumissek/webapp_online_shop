@@ -1,5 +1,6 @@
 import datetime
 import os
+import smtplib
 from functools import wraps
 from flask import Flask, render_template, redirect, url_for, request, flash, session
 from flask_bootstrap import Bootstrap5
@@ -7,7 +8,7 @@ from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, logout_user, current_user, login_required
 from sqlalchemy import String, Integer, Float
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, joinedload, subqueryload
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 from forms import RegisterForm, LoginForm, AddItemForm, PlaceOrderForm
 
@@ -160,22 +161,31 @@ def clear_cart():
     session['cart'] = []
     session.modified = True
 
-def send_mail(body:str):
-    pass
+def send_mail(to_email:str):
+    my_smtp=os.getenv('MY_MAIL_SMTP','smtp.gmail.com')
+    my_mail=os.getenv('MY_MAIL','pythonkurskurs@gmail.com')
+    my_password=os.getenv('MY_MAIL_PASSWORD','svvbtqswtoxdbchw')
+    item_names=[item['name'] for item in session['cart']]
+    with smtplib.SMTP(my_smtp,port=587) as connection:
+        connection.starttls()
+        connection.login(user=my_mail,password=my_password)
+        connection.sendmail(from_addr=my_mail,to_addrs=to_email,msg=f'Subject:Order from onlineshop-gumissek, date:{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\nOrder with items:\n{item_names}\nhas been placed.')
 
+def set_up_session():
+    if 'cart' not in session:
+        session['cart'] = []
 
 # ROUTES
 
 # pages
 @app.route('/')
 def start():
-    if 'cart' not in session:
-        session['cart'] = []
     return redirect(url_for('home_page'))
 
 
 @app.route('/home', methods=['POST', 'GET'])
 def home_page():
+    set_up_session()
     return render_template('homepage.html')
 
 
@@ -238,6 +248,7 @@ def place_order():
                               name=request.form['name'], surname=request.form['surname'], email=request.form['email'],
                               order_items=[] # pierw robie pusta liste zmowienia potem dodaje osobno kazda rzecz
                               )
+            send_mail(request.form['email'])
             database.session.add(new_order)
             database.session.commit()
 
@@ -271,6 +282,7 @@ def place_order():
                               name=request.form['name'], surname=request.form['surname'], email=request.form['email'],
                               order_items=[]  # pierw robie pusta liste zmowienia potem dodaje osobno kazda rzecz
                               )
+            send_mail(request.form['email'])
             database.session.add(new_order)
             database.session.commit()
             # relacja many-to-many w bazie danych nie zachowuje duplikatow wiec trzeba je dodac osobno
@@ -282,7 +294,7 @@ def place_order():
 
             database.session.commit()
             clear_cart()
-            flash(f'The order for logged out{request.form['email']} has been placed')
+            flash(f'The order for logged out {request.form['email']} has been placed')
             return redirect(url_for('home_page'))
         return render_template('place_order.html', cart=get_cart_items(), sum=calculate_sum_cart(), form=order_form)
 
