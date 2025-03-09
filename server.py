@@ -136,6 +136,11 @@ class OrderItems(database.Model):
     id_order: Mapped[int] = mapped_column(Integer, database.ForeignKey('orders.id'))
     id_item: Mapped[int] = mapped_column(Integer, database.ForeignKey('items.id'))
 
+class Newsletter(database.Model):
+    id: Mapped[int] = mapped_column(Integer,primary_key=True)
+    email: Mapped[str] = mapped_column(String(250),nullable=False,unique=True)
+    join_date : Mapped[str] = mapped_column(String(250),nullable=False)
+
 
 with app.app_context():
     database.create_all()
@@ -348,6 +353,17 @@ def login():
 
     return render_template('login.html', login_form=login_form)
 
+@app.route('/newsletter',methods=['POST'])
+def join_newsletter():
+    email= request.form['newsletter1']
+    if not database.session.execute(database.select(Newsletter).where(Newsletter.email==email)).scalar():
+        new_memeber = Newsletter(email=email,join_date=datetime.datetime.now().strftime('%Y-%m-%d'))
+        database.session.add(new_memeber)
+        database.session.commit()
+        flash(f'{email} has been added to newsletter')
+    else:
+        flash(f'{email} already exists in newsletter')
+    return redirect(url_for('home_page'))
 
 @login_required
 @app.route('/logout')
