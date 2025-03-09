@@ -9,7 +9,7 @@
     <p>Price:{{item.price}}</p>
     <form action={{url_for('show_item',item_id=item.id)}} method="post">
         <label>Amount:</label><br>
-        <input type="number" name="amount"  max="10" value="1"><br>
+        <input type="number" name="amount" min="1" max="10" value="1"><br>
         <button type="submit" class="btn btn-primary">Add to cart</button>
     </form>
 

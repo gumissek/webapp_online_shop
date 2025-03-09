@@ -34,7 +34,7 @@
             <th scope="col">address_home</th>
             <th scope="col">address_zip_code</th>
             <th scope="col">price</th>
-            <th scope="col">items</th>
+            <th scope="col">items_order</th>
             <th scope="col">delivery</th>
             <th scope="col">payment_method</th>
             <th scope="col">status</th>
@@ -58,7 +58,15 @@
             <td scope="col">{{order.address_home}}</td>
             <td scope="col">{{order.address_zip_code}}</td>
             <td scope="col">{{order.price}}</td>
-            <td scope="col">{%for item in order.items%}<p>Name:{{item.name}} Id:{{item.id}} EAN:{{item.EAN_code}}</p>
+            <td scope="col">
+                {%for ord in order_item%}
+                {%for item in all_items%}
+                {%if ord.id_order==order.id%}
+                {%if item.id==ord.id_item%}
+                <p style="color:red">Name:{{item.name}} Id:{{item.id}} EAN:{{item.EAN_code}} Price:{{item.price}}</p>
+                {%endif%}
+                {%endif%}
+                {%endfor%}
                 {%endfor%}
             </td>
             <td scope="col">{{order.delivery}}</td>

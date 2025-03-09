@@ -64,9 +64,15 @@
                 <td scope="col">{{order.address_zip_code}}<input name="address_zip_code{{order.id}}"
                                                                  value="{{order.address_zip_code}}"></td>
                 <td scope="col">{{order.price}}<input name="price{{order.id}}" value="{{order.price}}"></td>
-                <td scope="col">{%for item in order.items%}<p>Name:{{item.name}} Id:{{item.id}}
-                    EAN:{{item.EAN_code}}</p>
-                    {%endfor%}
+                <td scope="col">{%for ord in order_item%}
+                {%for item in all_items%}
+                {%if ord.id_order==order.id%}
+                {%if item.id==ord.id_item%}
+                <p style="color:red">Name:{{item.name}} Id:{{item.id}} EAN:{{item.EAN_code}} Price:{{item.price}}</p>
+                {%endif%}
+                {%endif%}
+                {%endfor%}
+                {%endfor%}
                 </td>
                 <td scope="col">{{order.delivery}}</td>
                 <td scope="col">{{order.payment_method}}</td>

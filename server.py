@@ -1,16 +1,13 @@
 import datetime
 import os
-from collections import Counter
 from functools import wraps
-import inspect
-
 from flask import Flask, render_template, redirect, url_for, request, flash, session
 from flask_bootstrap import Bootstrap5
 from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, logout_user, current_user, login_required
 from sqlalchemy import String, Integer, Float
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, joinedload, subqueryload
 from werkzeug.security import generate_password_hash, check_password_hash
 from forms import RegisterForm, LoginForm, AddItemForm, PlaceOrderForm
 
@@ -83,7 +80,7 @@ class Item(database.Model):
     shop_code: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
 
     # jeden item nalezy do wielu zamowien -> tabela posredniczca
-    orders = relationship('Order', secondary='orders_items', back_populates='items')
+    orders = relationship('Order', secondary='orders_items', back_populates='order_items')
 
     def to_dict(self):
         return {column.name: getattr(self, column.name) for column in self.__table__.columns}
@@ -128,7 +125,7 @@ class Order(database.Model):
     email: Mapped[str] = mapped_column(String(250))
 
     # jedno zamowienie ma wiele itemow -> tabela posredniczca
-    items = relationship('Item', secondary='orders_items', back_populates='orders')
+    order_items = relationship('Item', secondary='orders_items', back_populates='orders')
 
 
 # tabela posredniczaca laczaca wiele zamowienie do wielu itemow
@@ -142,24 +139,32 @@ class OrderItems(database.Model):
 with app.app_context():
     database.create_all()
 
-# ROUTES
 
-CART = []
-SUM_CART = 0
-
-
+# FUNCTIONS
 def calculate_sum_cart():
-    global SUM_CART
-    SUM_CART = 0
-    for item in CART:
-        SUM_CART += float(item.price)
-    return SUM_CART
+    sum_cart = 0
+    for item in session['cart']:
+        sum_cart += float(item['price'])
+    return round(sum_cart, 2)
+
+
+def get_cart_items():
+    # szukam itemow w bazie danych w tabeli Item o tym id co ma item w sesji, inaczej jak zrobie z cart = [Item.from_dict(item) for item in session['cart']] to zrobi mi nowe obiekty i SQL bedzie probowac je dodac do bazy danych ale nie doda ich bo juz takie istnieja i wyjebie blad - 2h w plecki :3
+    cart = []
+    for item in session['cart']:
+        cart.append(database.session.execute(database.select(Item).where(Item.id == item['id'])).scalar())
+    return cart
 
 
 def clear_cart():
-    for item in CART:
-        CART.remove(item)
+    session['cart'] = []
+    session.modified = True
 
+def send_mail(body:str):
+    pass
+
+
+# ROUTES
 
 # pages
 @app.route('/')
@@ -186,43 +191,22 @@ def show_item():
     selected_item = database.session.execute(database.select(Item).where(Item.id == item_id)).scalar()
     if request.method == 'POST':
         for i in range(int(request.form['amount'])):
-            CART.append(selected_item)
-
+            # dodaje itemki x razy do sesji
+            session['cart'].append(selected_item.to_dict())
+            session.modified = True
         return render_template('shop_item_page.html', item=selected_item)
     return render_template('shop_item_page.html', item=selected_item)
 
 
 @app.route('/cart')
 def show_cart():
-    #zmiana rzeczy z sesji na obiekty z tabeli Item
-    local  = [Item.from_dict(item)for item in session['cart']]
-    for item in local:
-        print(item.name)
-        print(item.id)
-
-    #todo walka z sesja
-    # items_pieces = Counter(CART)
-    # for item in items_pieces.items():
-    #     print(f'Nazwa przedmiotu: {item[0].name} Ilosc: {item[1]}')
-    # items_pieces = {item: CART.count(item) for item in CART}
-    # print(items_pieces)
-    # for item in CART:
-    #     print(item.name)
-    # print(f'Cart: {CART}')
-    print(f'session cart:')
-    for item in session['cart']:
-        print(item['name'])
-
-    # TODO DODAC ZMIENNA SESYJNA JAKO CART I OGARNC TO
-    return render_template('cart_page.html', cart=local, sum=calculate_sum_cart())
+    return render_template('cart_page.html', cart=get_cart_items(), sum=calculate_sum_cart())
 
 
 @app.route('/cart/add')
 def add_to_cart():
     item_id = request.args.get('item_id')
     selected_item = database.session.execute(database.select(Item).where(Item.id == item_id)).scalar()
-    CART.append(selected_item)
-    # todo wrocic tu TODO DODAC ZMIENNA SESYJNA JAKO CART I OGARNC TO
     session['cart'].append(selected_item.to_dict())
     session.modified = True
     return redirect(url_for('items_page'))
@@ -230,10 +214,9 @@ def add_to_cart():
 
 @app.route('/cart/delete')
 def delete_from_cart():
-    CART.remove(CART[int(request.args.get('index'))])
-    # todo chce usunac ze zmiennej z sesji ten item
-    #plan taki zeby pobrac id itemka wybrac go z bazy przerobic
-    # plan taki zeby wziac index tamtego itemka z session cart i usunac go z listy
+    item_index = int(request.args.get('index'))
+    session['cart'].remove(session['cart'][item_index])
+    session.modified = True
     return redirect(url_for('show_cart'))
 
 
@@ -243,6 +226,7 @@ def place_order():
     if current_user.is_authenticated:
         order_form = PlaceOrderForm(name=current_user.name, surname=current_user.surname, email=current_user.email)
         if order_form.validate_on_submit():
+            cart=get_cart_items()
             new_order = Order(price=calculate_sum_cart(), date_order=datetime.datetime.now().strftime('%Y-%m-%d'),
                               time_order=datetime.datetime.now().strftime('%H:%M:%S'),
                               address_country=request.form['country'].title(),
@@ -252,19 +236,30 @@ def place_order():
                               delivery=request.form['delivery'], payment_method=request.form['payment_method'],
                               user_id=current_user.id,
                               name=request.form['name'], surname=request.form['surname'], email=request.form['email'],
-                              items=CART)
+                              order_items=[] # pierw robie pusta liste zmowienia potem dodaje osobno kazda rzecz
+                              )
             database.session.add(new_order)
+            database.session.commit()
+
+            # relacja many-to-many w bazie danych nie zachowuje duplikatow wiec trzeba je dodac osobno
+            # wiec robie taki trick, pierw robie zamowienie z pusta lista a potem do tabeli posredniczacej dodaje dodaje wpisy
+            # gdzie id zamowienia to new_order.id a kazdy item z koszyka to osobny wpis
+            for item in cart:
+                order_item = OrderItems(id_order=new_order.id, id_item=item.id)
+                database.session.add(order_item)
+
             database.session.commit()
             clear_cart()
             flash(f'The order for logged in {request.form['email']} has been placed')
             return redirect(url_for('home_page'))
-        return render_template('place_order.html', cart=CART, sum=calculate_sum_cart(), form=order_form)
+        return render_template('place_order.html', cart=get_cart_items(), sum=calculate_sum_cart(), form=order_form)
 
     # jesli wylogowany bez user_id
     else:
 
         order_form = PlaceOrderForm()
         if order_form.validate_on_submit():
+            cart = get_cart_items()
             new_order = Order(price=calculate_sum_cart(), date_order=datetime.datetime.now().strftime('%Y-%m-%d'),
                               time_order=datetime.datetime.now().strftime('%H:%M:%S'),
                               address_country=request.form['country'].title(),
@@ -274,13 +269,22 @@ def place_order():
                               delivery=request.form['delivery'], payment_method=request.form['payment_method'],
 
                               name=request.form['name'], surname=request.form['surname'], email=request.form['email'],
-                              items=CART)
+                              order_items=[]  # pierw robie pusta liste zmowienia potem dodaje osobno kazda rzecz
+                              )
             database.session.add(new_order)
+            database.session.commit()
+            # relacja many-to-many w bazie danych nie zachowuje duplikatow wiec trzeba je dodac osobno
+            # wiec robie taki trick, pierw robie zamowienie z pusta lista a potem do tabeli posredniczacej dodaje dodaje wpisy
+            # gdzie id zamowienia to new_order.id a kazdy item z koszyka to osobny wpis
+            for item in cart:
+                order_item = OrderItems(id_order=new_order.id, id_item=item.id)
+                database.session.add(order_item)
+
             database.session.commit()
             clear_cart()
             flash(f'The order for logged out{request.form['email']} has been placed')
             return redirect(url_for('home_page'))
-        return render_template('place_order.html', cart=CART, sum=calculate_sum_cart(), form=order_form)
+        return render_template('place_order.html', cart=get_cart_items(), sum=calculate_sum_cart(), form=order_form)
 
 
 @app.route('/register', methods=['POST', 'GET'])
@@ -336,7 +340,7 @@ def login():
 @login_required
 @app.route('/logout')
 def logout():
-    clear_cart()
+    # clear_cart()
     logout_user()
     return redirect(url_for('home_page'))
 
@@ -356,7 +360,10 @@ def dashboard():
 @permitted_only
 def dashboard_all_orders():
     all_orders = database.session.execute(database.select(Order).order_by(Order.status)).scalars().all()
-    return render_template('dashboard_all_orders.html', all_orders=all_orders)
+    order_item=database.session.execute(database.select(OrderItems)).scalars().all()
+    all_items = database.session.execute(database.select(Item)).scalars().all()
+    #niestety sql utrudnia zycie wiec trzeba zrobic to tak a nie inaczej bo nie wyswietla duplikatow -.-
+    return render_template('dashboard_all_orders.html', all_orders=all_orders,order_item=order_item,all_items=all_items)
 
 
 @app.route('/dashboard/update_status')
@@ -373,7 +380,10 @@ def order_update_status():
 @permitted_only
 def dashboard_edit_orders():
     all_orders = database.session.execute(database.select(Order).order_by(Order.status)).scalars().all()
-    return render_template('dashboard_edit_orders.html', all_orders=all_orders)
+    order_item = database.session.execute(database.select(OrderItems)).scalars().all()
+    all_items = database.session.execute(database.select(Item)).scalars().all()
+    # niestety sql utrudnia zycie wiec trzeba zrobic to tak a nie inaczej bo nie wyswietla duplikatow -.-
+    return render_template('dashboard_edit_orders.html', all_orders=all_orders,order_item=order_item,all_items=all_items)
 
 
 @app.route('/dashboard/orders/edit_order/<int:order_id>', methods=['POST'])

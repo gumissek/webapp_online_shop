@@ -26,10 +26,10 @@
 
                 <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
                     <li><a href={{url_for('home_page')}} class="nav-link px-2 text-secondary">Home</a></li>
-                    <li><a href={{url_for('items_page')}} class="nav-link px-2 text-white">Przedmioty</a></li>
-                    <li><a href="#" class="nav-link px-2 text-white">Pricing</a></li>
-                    <li><a href="#" class="nav-link px-2 text-white">FAQs</a></li>
-                    <li><a href="#" class="nav-link px-2 text-white">About</a></li>
+                    <li><a href={{url_for('items_page')}} class="nav-link px-2 text-white">Items</a></li>
+                    <li><a href="#" class="nav-link px-2 text-white disabled">#</a></li>
+                    <li><a href="#" class="nav-link px-2 text-white disabled">#</a></li>
+                    <li><a href="#" class="nav-link px-2 text-white disabled">#</a></li>
                     {%if current_user.is_authenticated%}
                         {%if current_user.permission_level>1%}
                         <li><a href={{url_for('dashboard')}} class="nav-link px-2 text-white">Dashboard</a></li>
