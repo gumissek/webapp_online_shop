@@ -10,7 +10,7 @@
 6.  koszyk sumowanie ceny i ilosci OK
 7. bramka platnosci
 8. dane adresowe OK
-9. panel admina do dodawania produktow widoczny tylko dla uzytkownikow z poziomem dostepu >1
+9. panel admina do dodawania produktow widoczny tylko dla uzytkownikow z poziomem dostepu >1 ok
 10. wyswietlanie zamowien , dodawanie/usuwanie przedmiotow OK
 
 

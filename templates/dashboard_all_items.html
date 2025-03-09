@@ -11,11 +11,14 @@
     {%endfor%}
     {% endif %}
     {% endwith %}
-
+    <a href={{url_for('dashboard_edit_items')}} class="btn btn-warning me-2">Edit items</a>
+    <a href={{url_for('dashboard')}} class="btn btn-primary">dashboard</a>
+    <a href={{url_for('dashboard_add_item')}} class="btn btn-primary">add item</a>
+    <hr>
     {%if all_items%}
 
     <h3>All items list:</h3>
-    <a href={{url_for('dashboard_edit_items')}} class="btn btn-warning me-2">Edit</a>
+
     <table class="table table-striped">
         <thead>
         <tr>
@@ -45,13 +48,13 @@
             <td scope="col">{{item.EAN_code}}</td>
             <td scope="col">{{item.manufacturer_code}}</td>
             <td scope="col">{{item.shop_code}}</td>
-            <td scope="col"><a href={{url_for('dashboard_delete_item',item_id=item.id)}} class="btn btn-danger">Delete</a></td>
+            <td scope="col"><a href={{url_for('dashboard_delete_item',item_id=item.id)}}
+                               class="btn btn-danger">Delete</a></td>
         </tr>
         {%endfor%}
         </tbody>
     </table>
     {%endif%}
-    <a href={{url_for('dashboard')}} class="btn btn-primary">dashboard</a>
-    <a href={{url_for('dashboard_add_item')}} class="btn btn-primary">add item</a>
+
 </div>
 {%endblock%}

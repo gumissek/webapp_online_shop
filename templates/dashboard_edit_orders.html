@@ -10,6 +10,9 @@
     {%endfor%}
     {% endif %}
     {% endwith %}
+    <a href={{url_for('dashboard')}} class="btn btn-primary">dashboard</a>
+    <a href={{url_for('dashboard_all_orders')}} class="btn btn-primary">all orders</a>
+    <hr>
     {%if all_orders%}
 
     <h3>Edit orders list:</h3>
@@ -80,7 +83,6 @@
         </tbody>
     </table>
     {%endif%}
-    <a href={{url_for('dashboard')}} class="btn btn-primary">dashboard</a>
-    <a href={{url_for('dashboard_all_orders')}} class="btn btn-primary">all orders</a>
+
 </div>
 {%endblock%}

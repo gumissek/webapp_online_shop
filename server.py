@@ -3,6 +3,7 @@ import os
 from collections import Counter
 from functools import wraps
 import inspect
+
 from flask import Flask, render_template, redirect, url_for, request, flash, session
 from flask_bootstrap import Bootstrap5
 from dotenv import load_dotenv
@@ -11,7 +12,6 @@ from flask_login import UserMixin, login_user, LoginManager, logout_user, curren
 from sqlalchemy import String, Integer, Float
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
-
 from forms import RegisterForm, LoginForm, AddItemForm, PlaceOrderForm
 
 load_dotenv()
@@ -85,6 +85,24 @@ class Item(database.Model):
     # jeden item nalezy do wielu zamowien -> tabela posredniczca
     orders = relationship('Order', secondary='orders_items', back_populates='items')
 
+    def to_dict(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+
+    @classmethod
+    def from_dict(cls, dict_data):
+        return cls(
+            id=dict_data['id'],
+            name=dict_data['name'],
+            description=dict_data['description'],
+            category=dict_data['category'],
+            sub_category=dict_data['sub_category'],
+            price=dict_data['price'],
+            img_link=dict_data['img_link'],
+            EAN_code=dict_data['EAN_code'],
+            manufacturer_code=dict_data['manufacturer_code'],
+            shop_code=dict_data['shop_code']
+        )
+
 
 class Order(database.Model):
     __tablename__ = 'orders'
@@ -146,7 +164,8 @@ def clear_cart():
 # pages
 @app.route('/')
 def start():
-    session['cart'] = []
+    if 'cart' not in session:
+        session['cart'] = []
     return redirect(url_for('home_page'))
 
 
@@ -175,17 +194,27 @@ def show_item():
 
 @app.route('/cart')
 def show_cart():
-    # items_pieces = Counter(cart)
+    #zmiana rzeczy z sesji na obiekty z tabeli Item
+    local  = [Item.from_dict(item)for item in session['cart']]
+    for item in local:
+        print(item.name)
+        print(item.id)
+
+    #todo walka z sesja
+    # items_pieces = Counter(CART)
     # for item in items_pieces.items():
     #     print(f'Nazwa przedmiotu: {item[0].name} Ilosc: {item[1]}')
-    items_pieces = {item: CART.count(item) for item in CART}
-    print(items_pieces)
-    for item in CART:
-        print(item.name)
-    print(f'Cart: {CART}')
-    print(f'session cart: {session['cart']}')
+    # items_pieces = {item: CART.count(item) for item in CART}
+    # print(items_pieces)
+    # for item in CART:
+    #     print(item.name)
+    # print(f'Cart: {CART}')
+    print(f'session cart:')
+    for item in session['cart']:
+        print(item['name'])
+
     # TODO DODAC ZMIENNA SESYJNA JAKO CART I OGARNC TO
-    return render_template('cart_page.html', cart=CART, sum=calculate_sum_cart())
+    return render_template('cart_page.html', cart=local, sum=calculate_sum_cart())
 
 
 @app.route('/cart/add')
@@ -194,13 +223,17 @@ def add_to_cart():
     selected_item = database.session.execute(database.select(Item).where(Item.id == item_id)).scalar()
     CART.append(selected_item)
     # todo wrocic tu TODO DODAC ZMIENNA SESYJNA JAKO CART I OGARNC TO
-    session['cart'].append(selected_item)
+    session['cart'].append(selected_item.to_dict())
+    session.modified = True
     return redirect(url_for('items_page'))
 
 
 @app.route('/cart/delete')
 def delete_from_cart():
     CART.remove(CART[int(request.args.get('index'))])
+    # todo chce usunac ze zmiennej z sesji ten item
+    #plan taki zeby pobrac id itemka wybrac go z bazy przerobic
+    # plan taki zeby wziac index tamtego itemka z session cart i usunac go z listy
     return redirect(url_for('show_cart'))
 
 

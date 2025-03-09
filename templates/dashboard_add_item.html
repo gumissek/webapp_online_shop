@@ -1,9 +1,9 @@
 {%extends 'dashboard_base.html'%}
-{%block title%}Dashboard-Additem{%endblock%}
+{%block title%}Dashboard-Add new item{%endblock%}
 {%from 'bootstrap5/form.html' import render_form%}
 {%block content%}
 
-<div class="container col-6">
+<div class="container col-6 my-2">
     {% with messages = get_flashed_messages()%}
     {%if messages%}
     {%for message in messages%}
@@ -12,13 +12,13 @@
     {% endif %}
     {% endwith %}
 
-
-
-    {{render_form(form,novalidate=True)}}
-    <br>
-    <hr>
     <a href={{url_for('dashboard_all_items')}} class="btn btn-primary">all items</a>
     <a href={{url_for('dashboard')}} class="btn btn-primary">dashboard</a>
+    <br>
+    <hr>
+
+    {{render_form(form,novalidate=True)}}
+
 </div>
 
 {%endblock%}
