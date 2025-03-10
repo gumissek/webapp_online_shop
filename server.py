@@ -435,6 +435,23 @@ def dashboard_edit_order(order_id):
 
 
 # DASHBOARD ITEMS
+
+UPLOAD_FOLDER ='uploaded'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+folder_uploaded_files= Path(UPLOAD_FOLDER)
+
+if not folder_uploaded_files.is_dir():
+    os.system(f'mkdir {UPLOAD_FOLDER}')
+
+def allowed_extension(filename:str) -> bool:
+    if filename.rsplit('.',1)[1] in ALLOWED_EXTENSIONS:
+        return True
+    else:
+        return False
+
+
+
 @app.route('/dashboard/items/add_item', methods=['POST', 'GET'])
 @permitted_only
 def dashboard_add_item():
