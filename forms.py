@@ -1,8 +1,9 @@
 from flask_wtf import FlaskForm
 from wtforms.fields.choices import SelectField
 from wtforms.fields.numeric import FloatField, IntegerField
-from wtforms.fields.simple import StringField, SubmitField, EmailField, PasswordField, TextAreaField
+from wtforms.fields.simple import StringField, SubmitField, EmailField, PasswordField, TextAreaField, FileField
 from wtforms.validators import DataRequired, EqualTo, Length,Email,URL
+
 
 
 class RegisterForm(FlaskForm):
@@ -25,7 +26,7 @@ class AddItemForm(FlaskForm):
     category = StringField(label='Item category',validators=[DataRequired()])
     sub_category = StringField(label='Item subcategory',validators=[DataRequired()])
     price = FloatField(label='Item price',validators=[DataRequired(message='This field should contain a price')])
-    img_link = StringField(label='Item img link',validators=[DataRequired()])
+    img_file= FileField(label='Select product img')
     EAN_code = IntegerField(label='EAN code',validators=[DataRequired()])
     manufacturer_code = StringField(label='Manufacturer code',validators=[DataRequired()])
     shop_code = IntegerField(label='Shop_code',validators=[DataRequired()])

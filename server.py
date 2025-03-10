@@ -10,7 +10,12 @@ from flask_login import UserMixin, login_user, LoginManager, logout_user, curren
 from sqlalchemy import String, Integer, Float
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
+
 from forms import RegisterForm, LoginForm, AddItemForm, PlaceOrderForm
+from pathlib import Path
+# VARIABLES
+
 
 load_dotenv()
 
@@ -436,13 +441,13 @@ def dashboard_edit_order(order_id):
 
 # DASHBOARD ITEMS
 
-UPLOAD_FOLDER ='uploaded'
+UPLOAD_FOLDER ='static/images'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 folder_uploaded_files= Path(UPLOAD_FOLDER)
 
 if not folder_uploaded_files.is_dir():
-    os.system(f'mkdir {UPLOAD_FOLDER}')
+    os.system(f'mkdir -p {UPLOAD_FOLDER}')
 
 def allowed_extension(filename:str) -> bool:
     if filename.rsplit('.',1)[1] in ALLOWED_EXTENSIONS:
@@ -467,24 +472,24 @@ def dashboard_add_item():
                 flash('No selected file')
                 return redirect(url_for('dashboard_add_item'))
             if file and allowed_extension(file.filename):
-                file_name = secure_filename(file.filename)
+                file_name = f'{secure_filename(file.filename).split('.')[0]+'_ean_'+ean_code+'.'+secure_filename(file.filename).split('.')[1]}'
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
                 flash(f'File {file_name} has been saved')
             else:
                 flash('File extension not allowed')
                 return redirect(url_for('dashboard_add_item'))
 
-
+            # nowy item zachowuje tylko nazwe pliku
             new_item = Item(name=request.form['name'], description=request.form['description'],
                             category=request.form['category'], sub_category=request.form['sub_category'],
-                            price=request.form['price'], img_link=request.form['img_link'], EAN_code=ean_code,
-                            manufacturer_code=request.form['manufacturer_code'], shop_code=request.form['shop_code'])
+                            price=request.form['price'], img_link=file_name, EAN_code=ean_code,
+                            manufacturer_code=manufacturer_code, shop_code=shop_code)
             database.session.add(new_item)
             database.session.commit()
             flash(f'Item {request.form['name']} has been added to database')
             return redirect(url_for('dashboard_add_item'))
         else:
-            flash('Item with that EAN code exists in database')
+            flash('Item with that EAN code/Manufacturer code/Shop code exists in database')
     return render_template('dashboard_add_item.html', form=additem_form)
 
 
@@ -501,6 +506,7 @@ def dashboard_delete_item(item_id):
     requested_item = database.session.execute(database.select(Item).where(Item.id == item_id)).scalar()
     database.session.delete(requested_item)
     database.session.commit()
+    os.system(f'rm {UPLOAD_FOLDER}/{requested_item.img_link}')
     flash(f'Item with id: {item_id} has been removed from database')
     return redirect(url_for('dashboard_all_items'))
 

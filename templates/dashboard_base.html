@@ -12,6 +12,10 @@
     </style>
 </head>
 <body>
+<div class="container-fluid my-1">
+    <h3>Logged as: {{current_user.name}} <br>Perm lvl:{{current_user.permission_level}}</h3>
+</div>
+
 {%block content%}
 
 {%endblock%}

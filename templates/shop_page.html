@@ -7,11 +7,11 @@
     <div class="row">
         {%for item in all_items%}
         <div class="col-3">
-            <div class="card" style="width: 18rem;">
-                <img src="..." class="card-img-top" alt="...">
+            <div class="card my-2" style="width: 18rem" >
+                <img src="static/images/{{item.img_link}}" class="card-img-top" alt="{{item.name}} image" height="250" >
                 <div class="card-body">
                     <h5 class="card-title">{{item.name}}</h5>
-                    <p class="card-text">Description: {{item.description}}</p>
+                    <p class="card-text">Description: {{item.description[:20]}} ...</p>
                     <p class="card-text">Category: {{item.category}}</p>
                     <p class="card-text">Price: {{item.price}}</p>
                     <a href={{url_for('show_item',item_id=item.id)}} class="btn btn-primary">Show item</a>

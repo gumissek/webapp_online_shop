@@ -10,10 +10,11 @@
     {% endif %}
     {% endwith %}
 
-    <h1>Dziala dashboard</h1>
-    <a href={{url_for('home_page')}}>homepage</a><br>
-    <a href={{url_for('dashboard_add_item')}}>add item</a><br>
+    <h1>Dashboard main</h1>
+    <a href={{url_for('home_page')}}>Homepage</a><br>
+
     <a href={{url_for('dashboard_all_items')}}>All items</a><br>
+    <a href={{url_for('dashboard_add_item')}}>Add item</a><br>
     <a href={{url_for('dashboard_all_orders')}}>All orders</a><br>
 
 </div>
