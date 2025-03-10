@@ -60,15 +60,26 @@
             <td scope="col">{{order.address_zip_code}}</td>
             <td scope="col">{{order.price}}</td>
             <td scope="col">
-                {%for ord in order_item%}
-                {%for item in all_items%}
-                {%if ord.id_order==order.id%}
-                {%if item.id==ord.id_item%}
-                <p style="color:red">Name:{{item.name}} Id:{{item.id}} EAN:{{item.EAN_code}} Price:{{item.price}}</p>
-                {%endif%}
-                {%endif%}
-                {%endfor%}
-                {%endfor%}
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                            aria-expanded="False">
+                        Items in order
+                    </button>
+                    <ul class="dropdown-menu">
+                        {%for ord in order_item%}
+                        {%for item in all_items%}
+                        {%if ord.id_order==order.id%}
+                        {%if item.id==ord.id_item%}
+                        <li><p style="color:red">Name:{{item.name}} <br>Id:{{item.id}} <br>EAN:{{item.EAN_code}}<br>Manu_code:{{item.manufacturer_code}}
+                            Price:{{item.price}}</p></li>
+                        <li><hr class="dropdown-divider"></li>
+                        {%endif%}
+                        {%endif%}
+                        {%endfor%}
+                        {%endfor%}
+                    </ul>
+
+                </div>
             </td>
             <td scope="col">{{order.delivery}}</td>
             <td scope="col">{{order.payment_method}}</td>
@@ -98,15 +109,26 @@
             <td scope="col">{{order.address_zip_code}}</td>
             <td scope="col">{{order.price}}</td>
             <td scope="col">
-                {%for ord in order_item%}
-                {%for item in all_items%}
-                {%if ord.id_order==order.id%}
-                {%if item.id==ord.id_item%}
-                <p style="color:red">Name:{{item.name}} Id:{{item.id}} EAN:{{item.EAN_code}} Price:{{item.price}}</p>
-                {%endif%}
-                {%endif%}
-                {%endfor%}
-                {%endfor%}
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                            aria-expanded="False">
+                        Items in order
+                    </button>
+                    <ul class="dropdown-menu">
+                        {%for ord in order_item%}
+                        {%for item in all_items%}
+                        {%if ord.id_order==order.id%}
+                        {%if item.id==ord.id_item%}
+                        <li><p style="color:red">Name:{{item.name}} <br>Id:{{item.id}} <br>EAN:{{item.EAN_code}}<br>Manu_code:{{item.manufacturer_code}}
+                            Price:{{item.price}}</p></li>
+                        <li><hr class="dropdown-divider"></li>
+                        {%endif%}
+                        {%endif%}
+                        {%endfor%}
+                        {%endfor%}
+                    </ul>
+
+                </div>
             </td>
             <td scope="col">{{order.delivery}}</td>
             <td scope="col">{{order.payment_method}}</td>
@@ -136,15 +158,26 @@
             <td scope="col">{{order.address_zip_code}}</td>
             <td scope="col">{{order.price}}</td>
             <td scope="col">
-                {%for ord in order_item%}
-                {%for item in all_items%}
-                {%if ord.id_order==order.id%}
-                {%if item.id==ord.id_item%}
-                <p style="color:red">Name:{{item.name}} Id:{{item.id}} EAN:{{item.EAN_code}} Price:{{item.price}}</p>
-                {%endif%}
-                {%endif%}
-                {%endfor%}
-                {%endfor%}
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                            aria-expanded="False">
+                        Items in order
+                    </button>
+                    <ul class="dropdown-menu">
+                        {%for ord in order_item%}
+                        {%for item in all_items%}
+                        {%if ord.id_order==order.id%}
+                        {%if item.id==ord.id_item%}
+                        <li><p style="color:red">Name:{{item.name}} <br>Id:{{item.id}} <br>EAN:{{item.EAN_code}}<br>Manu_code:{{item.manufacturer_code}}
+                            Price:{{item.price}}</p></li>
+                        <li><hr class="dropdown-divider"></li>
+                        {%endif%}
+                        {%endif%}
+                        {%endfor%}
+                        {%endfor%}
+                    </ul>
+
+                </div>
             </td>
             <td scope="col">{{order.delivery}}</td>
             <td scope="col">{{order.payment_method}}</td>
@@ -174,15 +207,26 @@
             <td scope="col">{{order.address_zip_code}}</td>
             <td scope="col">{{order.price}}</td>
             <td scope="col">
-                {%for ord in order_item%}
-                {%for item in all_items%}
-                {%if ord.id_order==order.id%}
-                {%if item.id==ord.id_item%}
-                <p style="color:red">Name:{{item.name}} Id:{{item.id}} EAN:{{item.EAN_code}} Price:{{item.price}}</p>
-                {%endif%}
-                {%endif%}
-                {%endfor%}
-                {%endfor%}
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                            aria-expanded="False">
+                        Items in order
+                    </button>
+                    <ul class="dropdown-menu">
+                        {%for ord in order_item%}
+                        {%for item in all_items%}
+                        {%if ord.id_order==order.id%}
+                        {%if item.id==ord.id_item%}
+                        <li><p style="color:red">Name:{{item.name}} <br>Id:{{item.id}} <br>EAN:{{item.EAN_code}}<br>Manu_code:{{item.manufacturer_code}}
+                            Price:{{item.price}}</p></li>
+                        <li><hr class="dropdown-divider"></li>
+                        {%endif%}
+                        {%endif%}
+                        {%endfor%}
+                        {%endfor%}
+                    </ul>
+
+                </div>
             </td>
             <td scope="col">{{order.delivery}}</td>
             <td scope="col">{{order.payment_method}}</td>
@@ -212,15 +256,26 @@
             <td scope="col">{{order.address_zip_code}}</td>
             <td scope="col">{{order.price}}</td>
             <td scope="col">
-                {%for ord in order_item%}
-                {%for item in all_items%}
-                {%if ord.id_order==order.id%}
-                {%if item.id==ord.id_item%}
-                <p style="color:red">Name:{{item.name}} Id:{{item.id}} EAN:{{item.EAN_code}} Price:{{item.price}}</p>
-                {%endif%}
-                {%endif%}
-                {%endfor%}
-                {%endfor%}
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                            aria-expanded="False">
+                        Items in order
+                    </button>
+                    <ul class="dropdown-menu">
+                        {%for ord in order_item%}
+                        {%for item in all_items%}
+                        {%if ord.id_order==order.id%}
+                        {%if item.id==ord.id_item%}
+                        <li><p style="color:red">Name:{{item.name}} <br>Id:{{item.id}} <br>EAN:{{item.EAN_code}}<br>Manu_code:{{item.manufacturer_code}}
+                            Price:{{item.price}}</p></li>
+                        <li><hr class="dropdown-divider"></li>
+                        {%endif%}
+                        {%endif%}
+                        {%endfor%}
+                        {%endfor%}
+                    </ul>
+
+                </div>
             </td>
             <td scope="col">{{order.delivery}}</td>
             <td scope="col">{{order.payment_method}}</td>

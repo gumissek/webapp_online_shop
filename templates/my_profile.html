@@ -1,0 +1,106 @@
+{%extends 'base.html'%}
+{%block title%}My profile : {{current_user.name}}{%endblock%}
+{%block content%}
+<div class="container my-2">
+
+    <h3>My profile details</h3>
+    <ul>
+        <li>My name: {{current_user.name}}</li>
+        <li>My surname: {{current_user.surname}}</li>
+        <li>My email: {{current_user.email}}</li>
+        <li>Orders counter: {{lenght}}</li>
+    </ul>
+
+    {%if orders%}
+    <h3>My orders list:</h3>
+    <hr>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">
+                Status
+            </th>
+            <th scope="col">
+                Price
+            </th>
+            <th scope="col">
+                Items
+            </th>
+            <th scope="col">
+                Date Order
+            </th>
+            <th scope="col">
+                Time Order
+            </th>
+            <th scope="col">
+                Address Country
+            </th>
+            <th scope="col">
+                Address City
+            </th>
+            <th scope="col">
+                Address Street
+            </th>
+            <th scope="col">
+                Address Home
+            </th>
+            <th scope="col">
+                Address zip code
+            </th>
+            <th scope="col">
+                Delivery
+            </th>
+            <th scope="col">
+                Payment
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+
+        {%for order in orders%}
+
+
+        <tr>
+            <td scope="col">{{order.status}}</td>
+            <td scope="col">{{order.price}}</td>
+            <td scope="col">
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                        Items
+                    </button>
+
+                    <ul class="dropdown-menu">
+                        {%for item in list_items_for_order[orders.index(order)]%}
+                        <li>Name:{{item.name}} <br>Price:{{item.price}} <br>EAN:{{item.EAN_code}}</li>
+                        <li><hr class="dropdown-divider"></li>
+                        {%endfor%}
+                    </ul>
+
+                </div>
+
+
+
+            </td>
+            <td scope="col">{{order.date_order}}</td>
+            <td scope="col">{{order.time_order}}</td>
+            <td scope="col">{{order.address_country}}</td>
+            <td scope="col">{{order.address_city}}</td>
+            <td scope="col">{{order.address_street}}</td>
+            <td scope="col">{{order.address_home}}</td>
+            <td scope="col">{{order.address_zip_code}}</td>
+            <td scope="col">{{order.delivery}}</td>
+            <td scope="col">{{order.payment_method}}</td>
+
+
+        </tr>
+
+        {%endfor%}
+        </tbody>
+    </table>
+
+    {%else%}
+    <h3>No orders.</h3>
+    {%endif%}
+</div>
+{%endblock%}

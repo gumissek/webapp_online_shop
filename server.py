@@ -14,6 +14,7 @@ from werkzeug.utils import secure_filename
 
 from forms import RegisterForm, LoginForm, AddItemForm, PlaceOrderForm
 from pathlib import Path
+
 # VARIABLES
 
 
@@ -141,10 +142,11 @@ class OrderItems(database.Model):
     id_order: Mapped[int] = mapped_column(Integer, database.ForeignKey('orders.id'))
     id_item: Mapped[int] = mapped_column(Integer, database.ForeignKey('items.id'))
 
+
 class Newsletter(database.Model):
-    id: Mapped[int] = mapped_column(Integer,primary_key=True)
-    email: Mapped[str] = mapped_column(String(250),nullable=False,unique=True)
-    join_date : Mapped[str] = mapped_column(String(250),nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    email: Mapped[str] = mapped_column(String(250), nullable=False, unique=True)
+    join_date: Mapped[str] = mapped_column(String(250), nullable=False)
 
 
 with app.app_context():
@@ -171,19 +173,23 @@ def clear_cart():
     session['cart'] = []
     session.modified = True
 
-def send_mail(to_email:str):
-    my_smtp=os.getenv('MY_MAIL_SMTP','smtp.gmail.com')
-    my_mail=os.getenv('MY_MAIL','pythonkurskurs@gmail.com')
-    my_password=os.getenv('MY_MAIL_PASSWORD','svvbtqswtoxdbchw')
-    item_names=[item['name'] for item in session['cart']]
-    with smtplib.SMTP(my_smtp,port=587) as connection:
+
+def send_mail(to_email: str):
+    my_smtp = os.getenv('MY_MAIL_SMTP', 'smtp.gmail.com')
+    my_mail = os.getenv('MY_MAIL', 'pythonkurskurs@gmail.com')
+    my_password = os.getenv('MY_MAIL_PASSWORD', 'svvbtqswtoxdbchw')
+    item_names = [item['name'] for item in session['cart']]
+    with smtplib.SMTP(my_smtp, port=587) as connection:
         connection.starttls()
-        connection.login(user=my_mail,password=my_password)
-        connection.sendmail(from_addr=my_mail,to_addrs=to_email,msg=f'Subject:Order from onlineshop-gumissek, date:{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\nOrder with items:\n{item_names}\nhas been placed.')
+        connection.login(user=my_mail, password=my_password)
+        connection.sendmail(from_addr=my_mail, to_addrs=to_email,
+                            msg=f'Subject:Order from onlineshop-gumissek, date:{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\nOrder with items:\n{item_names}\nhas been placed.')
+
 
 def set_up_session():
     if 'cart' not in session:
         session['cart'] = []
+
 
 # ROUTES
 
@@ -197,6 +203,25 @@ def start():
 def home_page():
     set_up_session()
     return render_template('homepage.html')
+
+
+@app.route('/my_profile', methods=['GET'])
+@login_required
+def page_my_profile():
+    my_orders = database.session.execute(database.select(Order).where(Order.user_id == current_user.id)).scalars().all()
+    lenght = len(my_orders)
+    # mamy id zamowien -> [1,2]
+    orders_ids = [order.id for order in my_orders]
+
+    # mamy do danego id zamowienia id itemkow,dla kazdego zamowienia wybierz mi wszystkie rekordy(jako obiekt) [wszystkie rekordy dla order1, wszystkie dla rekordy dla order2] - > [[<OrderItems 1>, <OrderItems 2>], [<OrderItems 3>, <OrderItems 4>, <OrderItems 5>, <OrderItems 6>]]
+    orders_all_records = [
+        database.session.execute(database.select(OrderItems).where(OrderItems.id_order == id)).scalars().all() for id in
+        orders_ids]
+    # przechodze po wszystkich rekordach dla kazdego zamowienia,a potem przechodze po rekordzie we wszystkich rekorach i wybieram z rekordu id_item -> [[1, 2], [2, 2, 2, 2]]
+    list_items_for_order = [[database.session.execute(database.select(Item).where(Item.id==record.id_item)).scalar() for record in all_records] for all_records in orders_all_records]
+
+
+    return render_template('my_profile.html', orders=my_orders, lenght=lenght, list_items_for_order=list_items_for_order)
 
 
 @app.route('/shop_page')
@@ -246,7 +271,7 @@ def place_order():
     if current_user.is_authenticated:
         order_form = PlaceOrderForm(name=current_user.name, surname=current_user.surname, email=current_user.email)
         if order_form.validate_on_submit():
-            cart=get_cart_items()
+            cart = get_cart_items()
             new_order = Order(price=calculate_sum_cart(), date_order=datetime.datetime.now().strftime('%Y-%m-%d'),
                               time_order=datetime.datetime.now().strftime('%H:%M:%S'),
                               address_country=request.form['country'].title(),
@@ -256,7 +281,7 @@ def place_order():
                               delivery=request.form['delivery'], payment_method=request.form['payment_method'],
                               user_id=current_user.id,
                               name=request.form['name'], surname=request.form['surname'], email=request.form['email'],
-                              order_items=[] # pierw robie pusta liste zmowienia potem dodaje osobno kazda rzecz
+                              order_items=[]  # pierw robie pusta liste zmowienia potem dodaje osobno kazda rzecz
                               )
             send_mail(request.form['email'])
             database.session.add(new_order)
@@ -358,17 +383,19 @@ def login():
 
     return render_template('login.html', login_form=login_form)
 
-@app.route('/newsletter',methods=['POST'])
+
+@app.route('/newsletter', methods=['POST'])
 def join_newsletter():
-    email= request.form['newsletter1']
-    if not database.session.execute(database.select(Newsletter).where(Newsletter.email==email)).scalar():
-        new_memeber = Newsletter(email=email,join_date=datetime.datetime.now().strftime('%Y-%m-%d'))
+    email = request.form['newsletter1']
+    if not database.session.execute(database.select(Newsletter).where(Newsletter.email == email)).scalar():
+        new_memeber = Newsletter(email=email, join_date=datetime.datetime.now().strftime('%Y-%m-%d'))
         database.session.add(new_memeber)
         database.session.commit()
         flash(f'{email} has been added to newsletter')
     else:
         flash(f'{email} already exists in newsletter')
     return redirect(url_for('home_page'))
+
 
 @login_required
 @app.route('/logout')
@@ -393,10 +420,11 @@ def dashboard():
 @permitted_only
 def dashboard_all_orders():
     all_orders = database.session.execute(database.select(Order).order_by(Order.status)).scalars().all()
-    order_item=database.session.execute(database.select(OrderItems)).scalars().all()
+    order_item = database.session.execute(database.select(OrderItems)).scalars().all()
     all_items = database.session.execute(database.select(Item)).scalars().all()
-    #niestety sql utrudnia zycie wiec trzeba zrobic to tak a nie inaczej bo nie wyswietla duplikatow -.-
-    return render_template('dashboard_all_orders.html', all_orders=all_orders,order_item=order_item,all_items=all_items)
+    # niestety sql utrudnia zycie wiec trzeba zrobic to tak a nie inaczej bo nie wyswietla duplikatow -.-
+    return render_template('dashboard_all_orders.html', all_orders=all_orders, order_item=order_item,
+                           all_items=all_items)
 
 
 @app.route('/dashboard/update_status')
@@ -416,7 +444,8 @@ def dashboard_edit_orders():
     order_item = database.session.execute(database.select(OrderItems)).scalars().all()
     all_items = database.session.execute(database.select(Item)).scalars().all()
     # niestety sql utrudnia zycie wiec trzeba zrobic to tak a nie inaczej bo nie wyswietla duplikatow -.-
-    return render_template('dashboard_edit_orders.html', all_orders=all_orders,order_item=order_item,all_items=all_items)
+    return render_template('dashboard_edit_orders.html', all_orders=all_orders, order_item=order_item,
+                           all_items=all_items)
 
 
 @app.route('/dashboard/orders/edit_order/<int:order_id>', methods=['POST'])
@@ -441,20 +470,20 @@ def dashboard_edit_order(order_id):
 
 # DASHBOARD ITEMS
 
-UPLOAD_FOLDER ='static/images'
+UPLOAD_FOLDER = 'static/images'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-folder_uploaded_files= Path(UPLOAD_FOLDER)
+folder_uploaded_files = Path(UPLOAD_FOLDER)
 
 if not folder_uploaded_files.is_dir():
     os.system(f'mkdir -p {UPLOAD_FOLDER}')
 
-def allowed_extension(filename:str) -> bool:
-    if filename.rsplit('.',1)[1] in ALLOWED_EXTENSIONS:
+
+def allowed_extension(filename: str) -> bool:
+    if filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS:
         return True
     else:
         return False
-
 
 
 @app.route('/dashboard/items/add_item', methods=['POST', 'GET'])
@@ -463,16 +492,19 @@ def dashboard_add_item():
     additem_form = AddItemForm()
     if additem_form.validate_on_submit():
         ean_code = request.form['EAN_code']
-        manufacturer_code=request.form['manufacturer_code']
+        manufacturer_code = request.form['manufacturer_code']
         shop_code = request.form['shop_code']
-        if not database.session.execute(database.select(Item).where(Item.shop_code == shop_code)).scalar() and not database.session.execute(database.select(Item).where(Item.EAN_code == ean_code)).scalar() and not database.session.execute(database.select(Item).where(Item.manufacturer_code == manufacturer_code)).scalar() :
-            #zapisywanie obrazka na serwerze
+        if not database.session.execute(
+                database.select(Item).where(Item.shop_code == shop_code)).scalar() and not database.session.execute(
+            database.select(Item).where(Item.EAN_code == ean_code)).scalar() and not database.session.execute(
+            database.select(Item).where(Item.manufacturer_code == manufacturer_code)).scalar():
+            # zapisywanie obrazka na serwerze
             file = request.files['img_file']
             if file.filename == '':
                 flash('No selected file')
                 return redirect(url_for('dashboard_add_item'))
             if file and allowed_extension(file.filename):
-                file_name = f'{secure_filename(file.filename).split('.')[0]+'_ean_'+ean_code+'.'+secure_filename(file.filename).split('.')[1]}'
+                file_name = f'{secure_filename(file.filename).split('.')[0] + '_ean_' + ean_code + '.' + secure_filename(file.filename).split('.')[1]}'
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
                 flash(f'File {file_name} has been saved')
             else:
