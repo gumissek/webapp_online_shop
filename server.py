@@ -441,7 +441,23 @@ def dashboard_add_item():
     additem_form = AddItemForm()
     if additem_form.validate_on_submit():
         ean_code = request.form['EAN_code']
-        if not database.session.execute(database.select(Item).where(Item.EAN_code == ean_code)).scalar():
+        manufacturer_code=request.form['manufacturer_code']
+        shop_code = request.form['shop_code']
+        if not database.session.execute(database.select(Item).where(Item.shop_code == shop_code)).scalar() and not database.session.execute(database.select(Item).where(Item.EAN_code == ean_code)).scalar() and not database.session.execute(database.select(Item).where(Item.manufacturer_code == manufacturer_code)).scalar() :
+            #zapisywanie obrazka na serwerze
+            file = request.files['img_file']
+            if file.filename == '':
+                flash('No selected file')
+                return redirect(url_for('dashboard_add_item'))
+            if file and allowed_extension(file.filename):
+                file_name = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
+                flash(f'File {file_name} has been saved')
+            else:
+                flash('File extension not allowed')
+                return redirect(url_for('dashboard_add_item'))
+
+
             new_item = Item(name=request.form['name'], description=request.form['description'],
                             category=request.form['category'], sub_category=request.form['sub_category'],
                             price=request.form['price'], img_link=request.form['img_link'], EAN_code=ean_code,
