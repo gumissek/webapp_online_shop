@@ -13,6 +13,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from forms import RegisterForm, LoginForm, AddItemForm, PlaceOrderForm
 from pathlib import Path
+#author gumissek  - https://github.com/gumissek/webapp_online_shop
 
 load_dotenv()
 
