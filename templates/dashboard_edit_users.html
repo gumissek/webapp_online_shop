@@ -1,0 +1,54 @@
+{% extends 'dashboard_base.html'%}
+{%block title%}Dashboard edit users{%endblock%}
+{%block content%}
+
+<div class="container-fluid">
+    <h1>Edit users page</h1>
+    {% with messages = get_flashed_messages()%}
+    {%if messages%}
+    {%for message in messages%}
+    <p style="color:red">{{message}}</p>
+    {%endfor%}
+    {% endif %}
+    {% endwith %}
+    <a href={{url_for('dashboard_all_users')}} class="btn btn-primary me-2">All users</a>
+    <a href={{url_for('dashboard')}} class="btn btn-primary">dashboard</a>
+
+    <hr>
+    {%if all_users%}
+    <h3>All Users list:</h3>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">id</th>
+            <th scope="col">email</th>
+            <th scope="col">name</th>
+            <th scope="col">surname</th>
+            <th scope="col">permission_level</th>
+            <th scope="col">Actions</th>
+
+        </tr>
+        </thead>
+        <tbody>
+        {%for user in all_users%}
+        <form action={{url_for('dashboard_edit_user',user_id=user.id)}} method="post">
+            <tr>
+                <td scope="col">{{user.id}}</td>
+                <td scope="col">{{user.email}}<br><input name="email{{user.id}}" value="{{user.email}}"></td>
+                <td scope="col">{{user.name}}<br><input name="name{{user.id}}" value="{{user.name}}"></td>
+                <td scope="col">{{user.surname}}<br><input name="surname{{user.id}}" value="{{user.surname}}"></td>
+                <td scope="col">{{user.permission_level}}</td>
+                <td scope="col">
+                    <button type="submit" class="btn btn-success">Apply changes</button>
+                </td>
+
+
+            </tr>
+        </form>
+
+        {%endfor%}
+        </tbody>
+    </table>
+    {%endif%}
+</div>
+{%endblock%}

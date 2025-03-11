@@ -2,16 +2,37 @@
 {%block title%}Item : {{item.name}}{%endblock%}
 {%block content%}
 
-<div class="container">
+<div class="container my-2">
     {%if item%}
-    <p>Name:{{item.name}}</p>
-    <p>Desc:{{item.description}}</p>
-    <p>Price:{{item.price}}</p>
-    <form action={{url_for('show_item',item_id=item.id)}} method="post" class="form">
-        <label>Amount:</label><br>
-        <input type="number" name="amount" min="1" max="10" value="1"><br> <br>
-        <button type="submit" class="btn btn-primary">Add to cart</button>
-    </form>
+    <div class="row">
+        <div class="col-6">
+            <h3>Item name:<br>{{item.name}}</h3>
+            <h5>Price:<br>{{item.price}}</h5>
+            <h5>Category:<br>{{item.category}}</h5>
+            <h5>Subcategory:<br>{{item.sub_category}}</h5>
+
+            <br>
+            <form action={{url_for('show_item',item_id=item.id)}} method="post" class="form">
+                <label>Amount:</label><br>
+                <input type="number" name="amount" min="1" max="10" value="1"><br> <br>
+                <button type="submit" class="btn btn-primary">Add to cart</button>
+            </form>
+        </div>
+        <div class="col-6">
+
+            <img src="../static/images/{{item.img_link}}" class="img-thumbnail" alt="item {{item.name}} image"
+                 height="400px"
+                 width="400px"
+            >
+
+
+        </div>
+    </div>
+
+
+    <br><br>
+    <h5>Description:</h5>
+    <p>{{item.description}}</p>
 
 
     {%endif%}

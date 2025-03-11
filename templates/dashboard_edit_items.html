@@ -22,7 +22,9 @@
         <thead>
         <tr>
             <th scope="col">id</th>
+            <th scope="col">visible</th>
             <th scope="col">name</th>
+
             <th scope="col">description</th>
             <th scope="col">category</th>
             <th scope="col">sub_category</th>
@@ -39,7 +41,7 @@
         <form action={{url_for('dashboard_edit_item',item_id=item.id)}} method="post">
             <tr>
                 <td scope="col">{{item.id}}</td>
-
+                <td scope="col">{{item.visible}}<input name="visible{{item.id}}" value="{{item.visible}}"></td>
                 <td scope="col">{{item.name}}<input name="name{{item.id}}" value="{{item.name}}"></td>
                 <td scope="col">{{item.description}}<input name="description{{item.id}}" value="{{item.description}}">
                 </td>

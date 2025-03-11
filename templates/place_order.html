@@ -12,12 +12,12 @@ Guest
 <div class="container">
     <ol>
         {%for item in cart%}
-        <li> Name :{{item.name}} Cena:{{item.price}} <a href={{url_for('show_item',item_id=item.id)}} target="_blank">Link do
-            przedmiotu</a> <a href={{url_for('delete_from_cart',index=cart.index(item))}}>X</a></li>
+        <li> Name :{{item.name}} Price:{{item.price}} <a href={{url_for('show_item',item_id=item.id)}} target="_blank">Item page</a> <a href={{url_for('delete_from_cart',index=cart.index(item))}}>X</a></li>
         {%endfor%}
     </ol>
     <h3>Suma:{{sum}}</h3>
     {{render_form(form,novalidate=True)}}
+
 </div>
 
 {%endblock%}

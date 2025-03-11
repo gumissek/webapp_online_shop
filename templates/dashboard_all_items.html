@@ -23,6 +23,7 @@
         <thead>
         <tr>
             <th scope="col">id</th>
+            <th scope="col">visible</th>
             <th scope="col">name</th>
             <th scope="col">description</th>
             <th scope="col">category</th>
@@ -39,6 +40,7 @@
         {%for item in all_items%}
         <tr>
             <td scope="col">{{item.id}}</td>
+            <td scope="col">{{item.visible}}</td>
             <td scope="col">{{item.name}}</td>
             <td scope="col">{{item.description}}</td>
             <td scope="col">{{item.category}}</td>
@@ -48,8 +50,8 @@
             <td scope="col">{{item.EAN_code}}</td>
             <td scope="col">{{item.manufacturer_code}}</td>
             <td scope="col">{{item.shop_code}}</td>
-            <td scope="col"><a href={{url_for('dashboard_delete_item',item_id=item.id)}}
-                               class="btn btn-danger">Delete</a></td>
+            <td scope="col"><a href={{url_for('dashboard_change_visible_item',item_id=item.id)}}
+                               class="btn btn-info">Change item visible</a></td>
         </tr>
         {%endfor%}
         </tbody>

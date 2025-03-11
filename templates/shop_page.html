@@ -6,7 +6,8 @@
     {%if all_items%}
     <div class="row">
         {%for item in all_items%}
-        <div class="col-3">
+        {%if item.visible==1%}
+        <div class="col-3 ">
             <div class="card my-2" style="width: 18rem" >
                 <img src="static/images/{{item.img_link}}" class="card-img-top" alt="{{item.name}} image" height="250" >
                 <div class="card-body">
@@ -19,6 +20,7 @@
                 </div>
             </div>
         </div>
+        {%endif%}
         {%endfor%}
     </div>
     {%endif%}

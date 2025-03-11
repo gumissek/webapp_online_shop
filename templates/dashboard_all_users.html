@@ -1,0 +1,47 @@
+{% extends 'dashboard_base.html'%}
+{%block title%}Dashboard all users{%endblock%}
+{%block content%}
+
+<div class="container-fluid">
+    <h1>All users page</h1>
+    {% with messages = get_flashed_messages()%}
+    {%if messages%}
+    {%for message in messages%}
+    <p style="color:red">{{message}}</p>
+    {%endfor%}
+    {% endif %}
+    {% endwith %}
+    <a href={{url_for('dashboard_edit_users')}} class="btn btn-warning me-2">Edit users</a>
+    <a href={{url_for('dashboard')}} class="btn btn-primary">dashboard</a>
+
+    <hr>
+    {%if all_users%}
+    <h3>All Users list:</h3>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">id</th>
+            <th scope="col">email</th>
+            <th scope="col">name</th>
+            <th scope="col">surname</th>
+            <th scope="col">permission_level</th>
+
+        </tr>
+        </thead>
+        <tbody>
+        {%for user in all_users%}
+        <tr>
+            <td scope="col">{{user.id}}</td>
+            <td scope="col">{{user.email}}</td>
+            <td scope="col">{{user.name}}</td>
+            <td scope="col">{{user.surname}}</td>
+            <td scope="col">{{user.permission_level}}</td>
+
+
+        </tr>
+        {%endfor%}
+        </tbody>
+    </table>
+    {%endif%}
+    </div>
+{%endblock%}

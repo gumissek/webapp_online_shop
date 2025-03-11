@@ -7,16 +7,12 @@ from flask_bootstrap import Bootstrap5
 from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, logout_user, current_user, login_required
-from sqlalchemy import String, Integer, Float
+from sqlalchemy import String, Integer, Float ,desc
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-
 from forms import RegisterForm, LoginForm, AddItemForm, PlaceOrderForm
 from pathlib import Path
-
-# VARIABLES
-
 
 load_dotenv()
 
@@ -67,7 +63,7 @@ class User(UserMixin, database.Model):
     name: Mapped[str] = mapped_column(String(250), nullable=False)
     surname: Mapped[str] = mapped_column(String(250), nullable=False)
     password: Mapped[str] = mapped_column(String(250), nullable=False)
-    permission_level: Mapped[str] = mapped_column(Integer, nullable=False)
+    permission_level: Mapped[int] = mapped_column(Integer, nullable=False)
 
     # jeden user ma wiele zamowien
     orders = relationship('Order', back_populates='user')
@@ -85,6 +81,7 @@ class Item(database.Model):
     EAN_code: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
     manufacturer_code: Mapped[str] = mapped_column(String(250), nullable=False, unique=True)
     shop_code: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
+    visible : Mapped[int] = mapped_column(Integer,nullable=False)
 
     # jeden item nalezy do wielu zamowien -> tabela posredniczca
     orders = relationship('Order', secondary='orders_items', back_populates='order_items')
@@ -174,16 +171,16 @@ def clear_cart():
     session.modified = True
 
 
-def send_mail(to_email: str):
+def send_mail(to_email: str, msg_body, msg_title):
     my_smtp = os.getenv('MY_MAIL_SMTP', 'smtp.gmail.com')
     my_mail = os.getenv('MY_MAIL', 'pythonkurskurs@gmail.com')
     my_password = os.getenv('MY_MAIL_PASSWORD', 'svvbtqswtoxdbchw')
-    item_names = [item['name'] for item in session['cart']]
+
     with smtplib.SMTP(my_smtp, port=587) as connection:
         connection.starttls()
         connection.login(user=my_mail, password=my_password)
         connection.sendmail(from_addr=my_mail, to_addrs=to_email,
-                            msg=f'Subject:Order from onlineshop-gumissek, date:{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\nOrder with items:\n{item_names}\nhas been placed.')
+                            msg=f'Subject:{msg_title}\n\n{msg_body}')
 
 
 def set_up_session():
@@ -218,10 +215,12 @@ def page_my_profile():
         database.session.execute(database.select(OrderItems).where(OrderItems.id_order == id)).scalars().all() for id in
         orders_ids]
     # przechodze po wszystkich rekordach dla kazdego zamowienia,a potem przechodze po rekordzie we wszystkich rekorach i wybieram z rekordu id_item -> [[1, 2], [2, 2, 2, 2]]
-    list_items_for_order = [[database.session.execute(database.select(Item).where(Item.id==record.id_item)).scalar() for record in all_records] for all_records in orders_all_records]
+    list_items_for_order = [
+        [database.session.execute(database.select(Item).where(Item.id == record.id_item)).scalar() for record in
+         all_records] for all_records in orders_all_records]
 
-
-    return render_template('my_profile.html', orders=my_orders, lenght=lenght, list_items_for_order=list_items_for_order)
+    return render_template('my_profile.html', orders=my_orders, lenght=lenght,
+                           list_items_for_order=list_items_for_order)
 
 
 @app.route('/shop_page')
@@ -232,6 +231,7 @@ def items_page():
 
 @app.route('/shop_page/show_item', methods=['POST', 'GET'])
 def show_item():
+
     item_id = request.args.get('item_id')
     selected_item = database.session.execute(database.select(Item).where(Item.id == item_id)).scalar()
     if request.method == 'POST':
@@ -283,9 +283,12 @@ def place_order():
                               name=request.form['name'], surname=request.form['surname'], email=request.form['email'],
                               order_items=[]  # pierw robie pusta liste zmowienia potem dodaje osobno kazda rzecz
                               )
-            send_mail(request.form['email'])
             database.session.add(new_order)
             database.session.commit()
+            item_names = [item['name'] for item in session['cart']]
+            send_mail(request.form['email'],
+                      msg_title=f'Order number:{new_order.id} from shop-online~gumissek date:{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}',
+                      msg_body=f'New order: {new_order.id} for:{request.form['email']} has been placed.\nItems:\n{item_names}')
 
             # relacja many-to-many w bazie danych nie zachowuje duplikatow wiec trzeba je dodac osobno
             # wiec robie taki trick, pierw robie zamowienie z pusta lista a potem do tabeli posredniczacej dodaje dodaje wpisy
@@ -317,9 +320,13 @@ def place_order():
                               name=request.form['name'], surname=request.form['surname'], email=request.form['email'],
                               order_items=[]  # pierw robie pusta liste zmowienia potem dodaje osobno kazda rzecz
                               )
-            send_mail(request.form['email'])
             database.session.add(new_order)
             database.session.commit()
+            item_names = [item['name'] for item in session['cart']]
+            send_mail(request.form['email'],
+                      msg_title=f'Order number:{new_order.id} from shop-online~gumissek date:{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}',
+                      msg_body=f'New order: {new_order.id} for:{request.form['email']} has been placed.\nItems:\n{item_names}')
+
             # relacja many-to-many w bazie danych nie zachowuje duplikatow wiec trzeba je dodac osobno
             # wiec robie taki trick, pierw robie zamowienie z pusta lista a potem do tabeli posredniczacej dodaje dodaje wpisy
             # gdzie id zamowienia to new_order.id a kazdy item z koszyka to osobny wpis
@@ -350,6 +357,10 @@ def register():
                 new_user = User(name=name, surname=surname, email=email, password=hashed_password, permission_level=1)
                 database.session.add(new_user)
                 database.session.commit()
+                #rejestracja pierwszego uzytkownika jako admin
+                if new_user.id==1:
+                    new_user.permission_level=2
+                    database.session.commit()
                 login_user(new_user)
                 return redirect(url_for('home_page'))
             else:
@@ -391,6 +402,9 @@ def join_newsletter():
         new_memeber = Newsletter(email=email, join_date=datetime.datetime.now().strftime('%Y-%m-%d'))
         database.session.add(new_memeber)
         database.session.commit()
+        send_mail(email,
+                  msg_title=f'Newsletter from onlineshop-gumissek, date:{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}',
+                  msg_body=f'Your email: {email} has been added to newsletter.')
         flash(f'{email} has been added to newsletter')
     else:
         flash(f'{email} already exists in newsletter')
@@ -467,6 +481,31 @@ def dashboard_edit_order(order_id):
     database.session.commit()
     return redirect(url_for('dashboard_edit_orders'))
 
+# DASHBOARD USERS
+@app.route('/dashboard/all_users')
+@permitted_only
+def dashboard_all_users():
+    all_users=database.session.execute(database.select(User).order_by(desc(User.permission_level))).scalars().all()
+    return render_template('dashboard_all_users.html',all_users=all_users)
+
+
+@app.route('/dashboard/edit_users')
+@permitted_only
+def dashboard_edit_users():
+    all_users=database.session.execute(database.select(User).order_by(desc(User.permission_level))).scalars().all()
+    return render_template('dashboard_edit_users.html', all_users=all_users)
+
+
+@app.route('/dashboard/edit_user/<int:user_id>',methods=['POST'])
+@permitted_only
+def dashboard_edit_user(user_id):
+    requested_user = database.session.execute(database.select(User).where(User.id==user_id)).scalar()
+    requested_user.email = request.form[f'email{user_id}']
+    requested_user.name = request.form[f'name{user_id}']
+    requested_user.surname = request.form[f'surname{user_id}']
+    database.session.commit()
+    flash(f'Details for user: {requested_user.email} has been changed')
+    return redirect(url_for('dashboard_edit_users'))
 
 # DASHBOARD ITEMS
 
@@ -515,7 +554,7 @@ def dashboard_add_item():
             new_item = Item(name=request.form['name'], description=request.form['description'],
                             category=request.form['category'], sub_category=request.form['sub_category'],
                             price=request.form['price'], img_link=file_name, EAN_code=ean_code,
-                            manufacturer_code=manufacturer_code, shop_code=shop_code)
+                            manufacturer_code=manufacturer_code, shop_code=shop_code,visible=1)
             database.session.add(new_item)
             database.session.commit()
             flash(f'Item {request.form['name']} has been added to database')
@@ -534,12 +573,21 @@ def dashboard_all_items():
 
 @app.route('/dashboard/items/del_item/<int:item_id>')
 @permitted_only
-def dashboard_delete_item(item_id):
+def dashboard_change_visible_item(item_id):
     requested_item = database.session.execute(database.select(Item).where(Item.id == item_id)).scalar()
-    database.session.delete(requested_item)
+
+    if requested_item.visible == 1:
+        requested_item.visible =0
+    elif requested_item.visible ==0:
+        requested_item.visible=1
     database.session.commit()
-    os.system(f'rm {UPLOAD_FOLDER}/{requested_item.img_link}')
-    flash(f'Item with id: {item_id} has been removed from database')
+    # bylo usuwanie itema ale zmienielem na zmiane visible
+
+    # database.session.delete(requested_item)
+    # database.session.commit()
+    # os.system(f'rm {UPLOAD_FOLDER}/{requested_item.img_link}')
+    # flash(f'Item with id: {item_id} has been removed from database')
+    flash(f'Status visible for Item id: {requested_item.id} Name: {requested_item.name} has been changed')
     return redirect(url_for('dashboard_all_items'))
 
 
@@ -554,6 +602,7 @@ def dashboard_edit_items():
 @permitted_only
 def dashboard_edit_item(item_id):
     requested_item = database.session.execute(database.select(Item).where(Item.id == item_id)).scalar()
+    requested_item.visible = request.form[f'visible{item_id}']
     requested_item.name = request.form[f'name{item_id}']
     requested_item.description = request.form[f'description{item_id}']
     requested_item.category = request.form[f'category{item_id}']

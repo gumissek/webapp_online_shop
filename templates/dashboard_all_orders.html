@@ -90,7 +90,7 @@
                                class="btn btn-warning me-1">Update status</a>
                 <a
                         href="#"
-                        class="btn btn-danger disabled me-1">Delete order</a>
+                        class="btn btn-danger disabled me-1">Button for none</a>
             </td>
         </tr>
         {%elif order.status==2%}
@@ -139,7 +139,7 @@
                                class="btn btn-warning me-1">Update status</a>
                 <a
                         href="#"
-                        class="btn btn-danger disabled me-1">Delete order</a>
+                        class="btn btn-danger disabled me-1">Button for none</a>
             </td>
         </tr>
         {%elif order.status==3%}
@@ -188,7 +188,7 @@
                                class="btn btn-warning me-1">Update status</a>
                 <a
                         href="#"
-                        class="btn btn-danger disabled me-1">Delete order</a>
+                        class="btn btn-danger disabled me-1">Button for none</a>
             </td>
         </tr>
         {%elif order.status==4%}
@@ -237,7 +237,7 @@
                                class="btn btn-warning me-1">Update status</a>
                 <a
                         href="#"
-                        class="btn btn-danger disabled me-1">Delete order</a>
+                        class="btn btn-danger disabled me-1">Button for none</a>
             </td>
         </tr>
         {%elif order.status>=5%}
@@ -284,7 +284,7 @@
 
             <td scope="col"><a href={{url_for('order_update_status',order_id=order.id)}}
                                class="btn btn-warning me-1">Update status</a>
-                <a href="#" class="btn btn-danger disabled me-1">Delete order</a>
+                <a href="#" class="btn btn-danger disabled me-1">Button for none</a>
             </td>
         </tr>
         {%endif%}
