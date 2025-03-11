@@ -414,7 +414,7 @@ def join_newsletter():
 @login_required
 @app.route('/logout')
 def logout():
-    # clear_cart()
+    clear_cart()
     logout_user()
     return redirect(url_for('home_page'))
 
@@ -471,9 +471,9 @@ def dashboard_edit_order(order_id):
     requested_order.name = request.form[f'name{order_id}']
     requested_order.surname = request.form[f'surname{order_id}']
     requested_order.email = request.form[f'email{order_id}']
-    requested_order.address_country = request.form[f'address_country{order_id}']
-    requested_order.address_city = request.form[f'address_city{order_id}']
-    requested_order.address_street = request.form[f'address_street{order_id}']
+    requested_order.address_country = request.form[f'address_country{order_id}'].title()
+    requested_order.address_city = request.form[f'address_city{order_id}'].title()
+    requested_order.address_street = request.form[f'address_street{order_id}'].title()
     requested_order.address_home = request.form[f'address_home{order_id}']
     requested_order.address_zip_code = request.form[f'address_zip_code{order_id}']
     requested_order.price = request.form[f'price{order_id}']
@@ -547,7 +547,7 @@ def dashboard_add_item():
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
                 flash(f'File {file_name} has been saved')
             else:
-                flash('File extension not allowed')
+                flash('File extension not allowed only .jpeg .jpg .png')
                 return redirect(url_for('dashboard_add_item'))
 
             # nowy item zachowuje tylko nazwe pliku
@@ -617,4 +617,4 @@ def dashboard_edit_item(item_id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=False, port=5001)

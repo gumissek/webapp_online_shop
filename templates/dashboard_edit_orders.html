@@ -10,8 +10,9 @@
     {%endfor%}
     {% endif %}
     {% endwith %}
-    <a href={{url_for('dashboard')}} class="btn btn-primary">dashboard</a>
     <a href={{url_for('dashboard_all_orders')}} class="btn btn-primary">all orders</a>
+    <a href={{url_for('dashboard')}} class="btn btn-primary">dashboard</a>
+
     <hr>
     {%if all_orders%}
 
@@ -30,7 +31,7 @@
             <th scope="col">address_city</th>
             <th scope="col">address_street</th>
             <th scope="col">address_home</th>
-            <th scope="col">address_zip_code</th>
+            <th scope="col">address_zip_code e.g.12-123</th>
             <th scope="col">price</th>
             <th scope="col">items</th>
             <th scope="col">delivery</th>
@@ -47,23 +48,23 @@
 
             <tr>
                 <td scope="col">{{order.id}}</td>
-                <td scope="col">{{order.name}}<input name="name{{order.id}}" value="{{order.name}}"></td>
-                <td scope="col">{{order.surname}}<input name="surname{{order.id}}" value="{{order.surname}}"></td>
-                <td scope="col">{{order.email}}<input name="email{{order.id}}" value="{{order.email}}"></td>
+                <td scope="col">{{order.name}}<input type="text" name="name{{order.id}}" value="{{order.name}}"></td>
+                <td scope="col">{{order.surname}}<input type="text" name="surname{{order.id}}" value="{{order.surname}}"></td>
+                <td scope="col">{{order.email}}<input type="email" name="email{{order.id}}" value="{{order.email}}"></td>
                 <td scope="col">{{order.user_id}}</td>
                 <td scope="col">{{order.date_order}}</td>
                 <td scope="col">{{order.time_order}}</td>
-                <td scope="col">{{order.address_country}}<input name="address_country{{order.id}}"
+                <td scope="col">{{order.address_country}}<input type="text" name="address_country{{order.id}}"
                                                                 value="{{order.address_country}}"></td>
-                <td scope="col">{{order.address_city}}<input name="address_city{{order.id}}"
+                <td scope="col">{{order.address_city}}<input  type="text" name="address_city{{order.id}}"
                                                              value="{{order.address_city}}"></td>
-                <td scope="col">{{order.address_street}}<input name="address_street{{order.id}}"
+                <td scope="col">{{order.address_street}}<input type="text" name="address_street{{order.id}}"
                                                                value="{{order.address_street}}"></td>
-                <td scope="col">{{order.address_home}}<input name="address_home{{order.id}}"
+                <td scope="col">{{order.address_home}}<input type="text" name="address_home{{order.id}}"
                                                              value="{{order.address_home}}"></td>
-                <td scope="col">{{order.address_zip_code}}<input name="address_zip_code{{order.id}}"
+                <td scope="col">{{order.address_zip_code}}<input type="text" placeholder="eg. 12-120" name="address_zip_code{{order.id}}"
                                                                  value="{{order.address_zip_code}}"></td>
-                <td scope="col">{{order.price}}<input name="price{{order.id}}" value="{{order.price}}"></td>
+                <td scope="col">{{order.price}}<input type="number" name="price{{order.id}}" value="{{order.price}}"></td>
                 <td scope="col">
                     <div class="dropdown">
                         <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
@@ -91,7 +92,7 @@
                 </td>
                 <td scope="col">{{order.delivery}}</td>
                 <td scope="col">{{order.payment_method}}</td>
-                <td scope="col">{{order.status}}<input name="status{{order.id}}" value="{{order.status}}"></td>
+                <td scope="col">{{order.status}}<input type="number" min="1" max="10" name="status{{order.id}}" value="{{order.status}}"></td>
 
 
                 <td scope="col">

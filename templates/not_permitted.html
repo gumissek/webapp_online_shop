@@ -1,13 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<h1>
-  Brak uprawnien
-  <a href={{url_for('home_page')}}>homepage</a>
-</h1>
-</body>
-</html>
+{%extends 'base.html'%}
+{%block title%}Not permitted{%endblock%}
+{%block content%}
+<div class="container text-center">
+    <h1>You are not permitted to get this page</h1>
+    <a href="{{url_for('home_page')}}" class="btn  btn-danger">Go homepage</a>
+</div>
+
+{%endblock %}

@@ -6,14 +6,18 @@
     {%if cart%}
     <ol>
         {%for item in cart%}
-        <li> Name: {{item.name}} <br>Price: {{item.price}} <br><a href={{url_for('show_item',item_id=item.id)}} target="_blank">Item page</a> <br><a href={{url_for('delete_from_cart',index=cart.index(item))}} >Delete item from cart</a></li>
+        <li> Name: {{item.name}} <br>Price: {{item.price}} <br><a href={{url_for('show_item',item_id=item.id)}}
+                                                                  target="_blank">Item page</a> <br><a
+                href={{url_for('delete_from_cart',index=cart.index(item))}}>Delete item from cart</a></li>
         {%endfor%}
     </ol>
     <h3>Suma:{{sum}}</h3>
     <a href={{url_for('place_order')}}>Place order</a>
     {%else%}
     <h2>Empty</h2>
+
     {%endif%}
+
 
 </div>
 {%endblock%}

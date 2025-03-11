@@ -2,7 +2,7 @@
 {%block title%}Dashboard edit users{%endblock%}
 {%block content%}
 
-<div class="container-fluid">
+<div class="container">
     <h1>Edit users page</h1>
     {% with messages = get_flashed_messages()%}
     {%if messages%}
@@ -34,9 +34,9 @@
         <form action={{url_for('dashboard_edit_user',user_id=user.id)}} method="post">
             <tr>
                 <td scope="col">{{user.id}}</td>
-                <td scope="col">{{user.email}}<br><input name="email{{user.id}}" value="{{user.email}}"></td>
-                <td scope="col">{{user.name}}<br><input name="name{{user.id}}" value="{{user.name}}"></td>
-                <td scope="col">{{user.surname}}<br><input name="surname{{user.id}}" value="{{user.surname}}"></td>
+                <td scope="col">{{user.email}}<br><input type="email" name="email{{user.id}}" value="{{user.email}}"></td>
+                <td scope="col">{{user.name}}<br><input type="text" name="name{{user.id}}" value="{{user.name}}"></td>
+                <td scope="col">{{user.surname}}<br><input type="text" name="surname{{user.id}}" value="{{user.surname}}"></td>
                 <td scope="col">{{user.permission_level}}</td>
                 <td scope="col">
                     <button type="submit" class="btn btn-success">Apply changes</button>

@@ -41,19 +41,19 @@
         <form action={{url_for('dashboard_edit_item',item_id=item.id)}} method="post">
             <tr>
                 <td scope="col">{{item.id}}</td>
-                <td scope="col">{{item.visible}}<input name="visible{{item.id}}" value="{{item.visible}}"></td>
-                <td scope="col">{{item.name}}<input name="name{{item.id}}" value="{{item.name}}"></td>
-                <td scope="col">{{item.description}}<input name="description{{item.id}}" value="{{item.description}}">
+                <td scope="col">{{item.visible}}<input type="number" min="0" max="1" name="visible{{item.id}}" value="{{item.visible}}"></td>
+                <td scope="col">{{item.name}}<input type="text" name="name{{item.id}}" value="{{item.name}}"></td>
+                <td scope="col">{{item.description}}<input type="text" name="description{{item.id}}" value="{{item.description}}">
                 </td>
-                <td scope="col">{{item.category}}<input name="category{{item.id}}" value="{{item.category}}"></td>
-                <td scope="col">{{item.sub_category}}<input name="sub_category{{item.id}}"
+                <td scope="col">{{item.category}}<input type="text" name="category{{item.id}}" value="{{item.category}}"></td>
+                <td scope="col">{{item.sub_category}}<input type="text" name="sub_category{{item.id}}"
                                                             value="{{item.sub_category}}"></td>
-                <td scope="col">{{item.price}}<input name="price{{item.id}}" value={{item.price}}></td>
-                <td scope="col">{{item.img_link}}<input name="img_link{{item.id}}" value={{item.img_link}}></td>
-                <td scope="col">{{item.EAN_code}}<input name="EAN_code{{item.id}}" value={{item.EAN_code}}></td>
-                <td scope="col">{{item.manufacturer_code}}<input name="manufacturer_code{{item.id}}"
+                <td scope="col">{{item.price}}<input type="number" step="0.1" name="price{{item.id}}" value={{item.price}}></td>
+                <td scope="col">{{item.img_link}}<input type="text" name="img_link{{item.id}}" value={{item.img_link}}></td>
+                <td scope="col">{{item.EAN_code}}<input type="number" name="EAN_code{{item.id}}" value={{item.EAN_code}}></td>
+                <td scope="col">{{item.manufacturer_code}}<input type="text" name="manufacturer_code{{item.id}}"
                                                                  value={{item.manufacturer_code}}></td>
-                <td scope="col">{{item.shop_code}}<input name="shop_code{{item.id}}" value={{item.shop_code}}></td>
+                <td scope="col">{{item.shop_code}}<input type="number" name="shop_code{{item.id}}" value={{item.shop_code}}></td>
                 <td scope="col">
                     <button type="submit" class="btn btn-success">Apply changes</button>
                 </td>

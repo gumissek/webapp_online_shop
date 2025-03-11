@@ -1,7 +1,7 @@
 #todo strona flask
 1.strona glowna nawigacja ok
 
-2. produkty
+2. produkty ok 
 3. rejestracja ok
 3. logowanie ok
 4. wylogowywanie ok
